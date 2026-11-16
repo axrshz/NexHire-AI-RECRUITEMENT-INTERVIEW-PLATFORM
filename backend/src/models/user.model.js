@@ -4,7 +4,6 @@ import jwt from 'jsonwebtoken'
 
 
 const userSchema = new mongoose.Schema({
-
     name: {
         type: String,
         required: true
@@ -24,6 +23,7 @@ const userSchema = new mongoose.Schema({
         maxLength: [20, "Password cant be more than 20 characters"]
     },
     role: {
+        type: String,
         enum: ['Recruiter', 'Candidate'],
         required: true
     },
@@ -46,16 +46,17 @@ userSchema.pre("save", async function () {
     }
 })
 
-userSchema.methods.verifyPassword = async (password) => {
+userSchema.methods.verifyPassword = async function (password) {
     return await bcrypt.compare(password, this.password)
 }
 
 
-userSchema.methods.generateAccessToken = () => {
+userSchema.methods.generateAccessToken = function () {
     return jwt.sign({
         _id: this._id,
-        username: this.username,
-        email: this.email
+        name: this.name,
+        email: this.email,
+        role: this.role
     },
         process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: process.env.ACCESS_TOKEN_EXPIRY
@@ -63,7 +64,7 @@ userSchema.methods.generateAccessToken = () => {
 }
 
 
-userSchema.methods.generateRefreshToken = async () => {
+userSchema.methods.generateRefreshToken = function () {
     return jwt.sign({
         _id: this._id
     },
