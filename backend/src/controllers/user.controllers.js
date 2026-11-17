@@ -3,14 +3,13 @@ import userModel from "../models/user.model.js";
 import apiError from "../utils/apiError.js";
 import apiResponse from "../utils/apiResponse.js";
 import uploadFile from "../utils/cloudinary.js";
-
+import jwt from "jsonwebtoken";
 
 const options = {
     httpOnly: true,
     secure: true,
     sameSite: "none"
 }
-
 
 const Register = asyncHandler(async function (req, res) {
     const { name, email, password, role } = req.body
@@ -73,8 +72,89 @@ const Register = asyncHandler(async function (req, res) {
     }
 
     return res.status(201).json(
-        new apiResponse(200, "user registered successfully", userCreated) 
+        new apiResponse(200, "user registered successfully", userCreated)
     )
 })
 
-export default { Register }
+
+
+const DefaultLogin = asyncHandler(async function (req, res) {
+
+    const { email, password } = req.body
+
+    if (!email) {
+        throw new apiError(400, "email is required")
+    }
+
+    const foundUser = await userModel.findOne({
+        email: email
+    })
+
+    if (!foundUser) {
+        throw new apiError(400, "invalid email")
+    }
+
+    const matched = foundUser.verifyPassword(password)
+
+    if (!matched) {
+        throw new apiError(400, "invalid password")
+    }
+
+    const accessToken = foundUser.generateAccessToken()
+    const refreshToken = foundUser.generateRefreshToken()
+
+    return res.status(200).cookie("refreshToken", refreshToken, options).json(
+        new apiResponse(200, "logged in successfully", { foundUser, accesstoken: accessToken })
+    )
+})
+
+
+const getCurrUser = asyncHandler(async function (req, res) {
+    const curr_user_id = req.user._id
+
+    const user = await userModel.findOne({
+        _id: curr_user_id
+    })
+
+    return res.status(200).json(
+        new apiResponse(200, "user fetched successfully", user)
+    )
+})
+
+
+const refreshToken = asyncHandler(async function (req, res) {
+    const refreshToken = req.cookies.refreshToken
+
+    if (!refreshToken) {
+        throw new apiError(401, "unauthorised")
+    }
+
+    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET)
+    const user = await userModel.findOne({ _id: decoded._id })
+
+    const accessToken = user.generateAccessToken()
+    const newRefreshToken = user.generateRefreshToken()
+
+    return res.status(200).cookie("refreshToken", newRefreshToken).json(
+        new apiResponse(200, "refreshed token successfully", { accessToken })
+    )
+})
+
+
+const logout = asyncHandler(async function (req, res) {
+
+    const curr_user_id = req.user._id
+
+    if (!curr_user_id) {
+        throw new apiError(401, "user is not logged in")
+    }
+
+    res.clearCookie("refreshToken")
+
+    res.status(200).json(
+        new apiResponse(200, "logged out successfully")
+    )
+
+})
+
+export default { Register, DefaultLogin, getCurrUser, refreshToken, logout }
