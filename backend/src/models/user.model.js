@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
 
+
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -18,9 +19,7 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         trim: true,
-        required: true,
-        minLength: [5, "Password must be at least 5 characters long"],
-        maxLength: [20, "Password cant be more than 20 characters"]
+        required: true
     },
     role: {
         type: String,
@@ -31,7 +30,12 @@ const userSchema = new mongoose.Schema({
         type: String,
     },
     refreshToken: {
-        type: String
+        type: String,
+        default: null
+    },
+    verified: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true
@@ -41,10 +45,8 @@ userSchema.pre("save", async function () {
     if (this.isModified("password")) { 
         this.password = await bcrypt.hash(this.password, 10)
     }
-    else {
-        return 
-    }
 })
+
 
 userSchema.methods.verifyPassword = async function (password) {
     return await bcrypt.compare(password, this.password)
