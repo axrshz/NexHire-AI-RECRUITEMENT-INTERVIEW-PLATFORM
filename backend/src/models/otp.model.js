@@ -3,19 +3,20 @@ import mongoose from "mongoose";
 const otpSchema = new mongoose.Schema({
     email: {
         type: String,
-        required: [ true, "Email is required" ]
+        required: [true, "Email is required"]
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "users",
-        required: [ true, "User is required" ]
+        required: [true, "User is required"]
     },
     otp: {
         type: String,
-        required: [ true, "OTP hash is required" ]
+        required: [true, "OTP hash is required"]
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    expires: 120
 })
 
 const otpModel = mongoose.model("otp", otpSchema)

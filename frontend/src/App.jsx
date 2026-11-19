@@ -18,8 +18,8 @@ function App() {
     <Router>
       <Routes>
         {/* Auth routes */}
-        <Route path="/" element={<Register />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<Login />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
 
         {/* Recruiter Portal */}

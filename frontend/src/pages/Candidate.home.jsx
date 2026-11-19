@@ -1,9 +1,21 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useState } from 'react';
+import api from "../api/axios.js"
+import { asyncHandler } from "../api/axios.js"
 
 export default function CandidateHome() {
   const [activeTab, setActiveTab] = useState("Foryou");
   const [inputValue, setInputValue] = useState("");
+  const [user, setUser] = useState({})
+
+  useEffect(() => {
+    asyncHandler(async () => {
+       api.get("/user/get-curr-user")
+       .then((res)=>{
+         setUser(res.data.data.user)
+       })
+    })
+  }, [])
 
   return (
     <main className="px-10 py-8 max-w-5xl mx-auto">

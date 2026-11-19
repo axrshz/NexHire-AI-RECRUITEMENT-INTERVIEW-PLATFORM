@@ -68,7 +68,7 @@ export default function Register() {
       data.append('role', formData.role)
       data.append('avatar', avatar)
 
-      const response = await api.post('/register', data, {
+      const response = await api.post('/user/register', data, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
 

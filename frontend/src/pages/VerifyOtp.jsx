@@ -73,7 +73,7 @@ export default function VerifyOtp() {
 
     try {
       setLoading(true)
-      const response = await api.post('/verify-otp', {
+      const response = await api.post('/user/verify-otp', {
         otp: finalOtp,
         email: email.trim().toLowerCase(),
       })
@@ -81,10 +81,10 @@ export default function VerifyOtp() {
       if (response.status === 200 || response.status === 201) {
         setSuccess('Email successfully verified! Redirecting to login...')
         setTimeout(() => {
-          navigate('/login', {
+          navigate('/', {
             state: { verifiedEmail: email.trim().toLowerCase() },
           })
-        }, 1500)
+        }, 1000)
       }
     } catch (err) {
       console.error('OTP verification failed:', err)

@@ -98,9 +98,9 @@ const verifyOtp = asyncHandler(async function (req, res) {
         throw new apiError(400, "otp is required")
     }
 
-    const query = { otp: String(otp).trim() }
+    const query = { otp: otp }
     if (email) {
-        query.email = email.trim()
+        query.email = email
     }
 
     const otpDoc = await otpModel.findOne(query)
@@ -156,7 +156,7 @@ const DefaultLogin = asyncHandler(async function (req, res) {
     foundUser.refreshToken = refreshToken
     await foundUser.save({ validateBeforeSave: false })
 
-    const loggedInUser = await userModel.findById(foundUser._id).select("-password -refreshToken")
+    const loggedInUser = await userModel.findById(foundUser._id).select("-email -password -refreshToken")
 
     return res.status(200).cookie("refreshToken", refreshToken, options).json(
         new apiResponse(200, "logged in successfully", { user: loggedInUser, accessToken })
@@ -204,7 +204,7 @@ const refreshToken = asyncHandler(async function (req, res) {
 
         return res.status(200).cookie("refreshToken", newRefreshToken, options)
             .json(
-                new apiResponse(200, "refreshed token successfully", { accessToken })
+                new apiResponse(200, "refreshed token successfully",  accessToken )
             )
     } catch (error) {
         throw new apiError(401, error?.message || "invalid refresh token")

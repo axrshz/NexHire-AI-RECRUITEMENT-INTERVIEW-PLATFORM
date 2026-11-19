@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import api from '../api/axios'
+import { SetAccessToken } from '../api/memory.tokenStore.js'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -38,7 +39,7 @@ export default function Login() {
 
     try {
       setLoading(true)
-      const response = await api.post('/login', {
+      const response = await api.post('/user/login', {
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
       })
@@ -48,7 +49,7 @@ export default function Login() {
 
         // Store auth tokens and user profile
         if (accessToken) {
-          localStorage.setItem('accessToken', accessToken)
+          SetAccessToken(accessToken)//save token to memory
         }
         if (user) {
           localStorage.setItem('currentUser', JSON.stringify(user))
@@ -186,7 +187,7 @@ export default function Login() {
           {/* Footer Navigation */}
           <div className="mt-6 text-center text-xs text-slate-500">
             Don't have an account?{' '}
-            <Link to="/" className="font-semibold text-rose-600 hover:text-rose-700 hover:underline">
+            <Link to="/register" className="font-semibold text-rose-600 hover:text-rose-700 hover:underline">
               Create an account
             </Link>
           </div>

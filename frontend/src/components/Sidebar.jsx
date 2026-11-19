@@ -1,5 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import api from "../api/axios.js"
+import { asyncHandler } from "../api/axios.js"
+
+const DEFAULT_AVATAR = 'https://ui-avatars.com/api/?background=f43f5e&color=fff&bold=true&size=128';
+
 
 export default function Sidebar() {
   const navigate = useNavigate();
@@ -8,8 +13,19 @@ export default function Sidebar() {
   const active = location.pathname.endsWith("/candidate/applications")
     ? "applications"
     : location.pathname.endsWith("/candidate/interviews")
-    ? "interviews"
-    : "feed";
+      ? "interviews"
+      : "feed";
+
+  const [user, setUser] = useState({})
+
+  useEffect(() => {
+    asyncHandler(async () => {
+      api.get("/user/get-curr-user")
+        .then((res) => {
+          setUser(res.data.data.user)
+        })
+    })
+  }, [])
 
   return (
     <div className="flex min-h-screen bg-[#fdeaea]">
@@ -37,11 +53,10 @@ export default function Sidebar() {
             {/* Job Feed Link */}
             <div
               onClick={() => navigate("/")}
-              className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
-                active === 'feed'
-                  ? 'bg-[#fdeaea] text-rose-700'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-[#fdeaea]/60'
-              }`}
+              className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${active === 'feed'
+                ? 'bg-[#fdeaea] text-rose-700'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-[#fdeaea]/60'
+                }`}
             >
               <div className="flex items-center gap-3">
                 <svg className={`w-4 h-4 ${active === 'feed' ? 'text-rose-600' : 'text-slate-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -58,11 +73,10 @@ export default function Sidebar() {
             {/* My Applications Link */}
             <div
               onClick={() => navigate("/candidate/applications")}
-              className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
-                active === 'applications'
-                  ? 'bg-[#fdeaea] text-rose-700'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-[#fdeaea]/60'
-              }`}
+              className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${active === 'applications'
+                ? 'bg-[#fdeaea] text-rose-700'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-[#fdeaea]/60'
+                }`}
             >
               <div className="flex items-center gap-3">
                 <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -78,11 +92,10 @@ export default function Sidebar() {
             {/* AI Interviews Link */}
             <div
               onClick={() => navigate("/candidate/interviews")}
-              className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
-                active === 'interviews'
-                  ? 'bg-[#fdeaea] text-rose-700'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-[#fdeaea]/60'
-              }`}
+              className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${active === 'interviews'
+                ? 'bg-[#fdeaea] text-rose-700'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-[#fdeaea]/60'
+                }`}
             >
               <div className="flex items-center gap-3">
                 <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -125,12 +138,15 @@ export default function Sidebar() {
             <div className="flex items-center gap-2.5">
               <img
                 className="w-9 h-9 rounded-full object-cover shadow-sm"
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-                alt="Alex Morgan"
+                src={user?.avatar || `${DEFAULT_AVATAR}&name=${encodeURIComponent(user?.name || 'User')}`}
+                alt={user?.name || 'User Avatar'}
+                onError={(e) => {
+                  e.currentTarget.src = `${DEFAULT_AVATAR}&name=${encodeURIComponent(user?.name || 'User')}`
+                }}
               />
               <div className="text-left">
-                <div className="text-xs font-bold text-slate-800 leading-none">Alex Morgan</div>
-                <div className="text-[11px] text-slate-500 mt-1">Full-stack Candidate</div>
+                <div className="text-xs font-bold text-slate-800 leading-none">{user?.name || 'Candidate'}</div>
+                <div className="text-[11px] text-slate-500 mt-1 capitalize">{user?.role || 'Candidate'}</div>
               </div>
             </div>
             <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
