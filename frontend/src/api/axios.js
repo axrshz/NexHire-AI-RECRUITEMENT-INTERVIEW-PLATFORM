@@ -15,25 +15,35 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-
+let refreshPromise = null //flag used to prevent twice api calling by react strictmode
 export const asyncHandler = async (fn) => {
   try {
     return await fn()
   } catch (error) {
-    if (error.response.statusCode === 401) {
-      api.get('/user/refresh-token')
-        .then((res) => {
-          SetAccessToken(res.data.data.accessToken)
-          return fn()
-        })
-        .catch((err) => {
-          console.log(err.response.message || "could'nt refresh accessToken")
-        })
+    if (error?.response?.status === 401) {
+      try {
+        if (!refreshPromise) {
+          refreshPromise = api.get('/user/refresh-token')
+            .then((res) => {
+              const token = res.data?.data?.accessToken || res.data?.data
+              SetAccessToken(token)
+              return token
+            })
+            .finally(() => {
+              refreshPromise = null
+            })
+        }
+        await refreshPromise
+        return await fn()
+      } catch (err) {
+        console.log(err?.response?.data?.message || "couldn't refresh accessToken")
+      }
     }
+    throw error
   }
 }
 
 export default api
-
+ 
 
 

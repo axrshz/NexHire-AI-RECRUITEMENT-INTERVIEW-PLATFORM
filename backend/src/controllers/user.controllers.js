@@ -7,12 +7,12 @@ import uploadFile from "../utils/cloudinary.js";
 import sendEmail from '../services/email.service.js'
 import { generateOtp, generateHTMLotp } from "../utils/otp.js"
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+
 
 const options = {
     httpOnly: true,
-    secure: true,
-    sameSite: "none"
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
 }
 
 const Register = asyncHandler(async function (req, res) {
@@ -163,13 +163,13 @@ const DefaultLogin = asyncHandler(async function (req, res) {
     )
 })
 
-
 const getCurrUser = asyncHandler(async function (req, res) {
     const curr_user_id = req.user._id
 
     const user = await userModel.findById(curr_user_id).select("-password -refreshToken")
 
-    const token = req.headers.authorization.split(" ")[1]
+    const authHeader = req.headers.authorization || req.headers.Authorization
+    const token = authHeader ? authHeader.split(" ")[1] : null
 
     return res.status(200).json(
         new apiResponse(200, "user fetched successfully", { user, accessToken: token })
@@ -204,7 +204,7 @@ const refreshToken = asyncHandler(async function (req, res) {
 
         return res.status(200).cookie("refreshToken", newRefreshToken, options)
             .json(
-                new apiResponse(200, "refreshed token successfully",  accessToken )
+                new apiResponse(200, "refreshed token successfully", { accessToken })
             )
     } catch (error) {
         throw new apiError(401, error?.message || "invalid refresh token")

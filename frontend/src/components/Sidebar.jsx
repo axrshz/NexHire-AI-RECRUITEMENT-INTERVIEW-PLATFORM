@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import api from "../api/axios.js"
 import { asyncHandler } from "../api/axios.js"
+import { ClearAccessToken } from "../api/memory.tokenStore.js"
 
 const DEFAULT_AVATAR = 'https://ui-avatars.com/api/?background=f43f5e&color=fff&bold=true&size=128';
 
@@ -20,12 +21,24 @@ export default function Sidebar() {
 
   useEffect(() => {
     asyncHandler(async () => {
-      api.get("/user/get-curr-user")
-        .then((res) => {
-          setUser(res.data.data.user)
-        })
+      const res = await api.get("/user/get-curr-user")
+      if (res?.data?.data?.user) {
+        setUser(res.data.data.user)
+      }
     })
   }, [])
+
+  const handleLogout = async () => {
+    api.get('/user/logout')
+      .then(() => {
+        ClearAccessToken()
+        localStorage.clear('currentUser')
+        navigate("/")
+      })
+      .catch((err) => {
+        console.log(err.response.message || "could'nt log out")
+      })
+  }
 
   return (
     <div className="flex min-h-screen bg-[#fdeaea]">
@@ -52,7 +65,7 @@ export default function Sidebar() {
 
             {/* Job Feed Link */}
             <div
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/candidate/home")}
               className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${active === 'feed'
                 ? 'bg-[#fdeaea] text-rose-700'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-[#fdeaea]/60'
@@ -153,6 +166,17 @@ export default function Sidebar() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
             </svg>
           </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/80 border border-rose-200/60 transition cursor-pointer"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span>Log out</span>
+          </button>
         </div>
       </aside>
       <div className="flex-1 min-w-0">
