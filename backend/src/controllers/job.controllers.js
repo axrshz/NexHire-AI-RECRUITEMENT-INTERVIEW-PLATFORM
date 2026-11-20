@@ -1,6 +1,5 @@
 import jobModel from "../models/job.model.js"
 import asyncHandler from "../utils/asyncHandler.js";
-import jobService from "../services/job.service.js"
 import apiResponse from "../utils/apiResponse.js"
 import apiError from "../utils/apiError.js";
 
@@ -8,23 +7,25 @@ const createJobPost = asyncHandler(async (req, res) => {
 
     const { title, description, experience, location, salary, status, requiredSkills, vacancies } = req.body
 
-    if (!title || !description || !experience || !location || !salary || !status || !requiredSkills || !vacancies) {
+    if (!title || !description || !experience || !location || !salary || !requiredSkills || !vacancies) {
         throw new apiError(400, "all fields are required")
     }
 
-    const jobData = {
+    const job = await jobModel.create({
         title,
         description,
         experience,
         location,
         salary,
-        status,
+        status: "Open",
         requiredSkills,
         vacancies,
         postedBy: req.user?._id
-    }
+    })
 
-    const job = await jobService.createJob(jobData)
+    if (!job) {
+        throw new apiError(400, "could'nt create job")
+    }
 
     res.status(201).json(
         new apiResponse(200, "job created successfully", job)
@@ -53,7 +54,7 @@ const getFeedJobs = asyncHandler(async function (req, res) {
                 pipeline: [
                     {
                         $lookup: {
-                            from: "CompanyMembers",
+                            from: "companymembers",
                             localField: "_id",
                             foreignField: "userId",
                             as: "details",
@@ -73,11 +74,42 @@ const getFeedJobs = asyncHandler(async function (req, res) {
                                             }
                                         ]
                                     }
+                                },
+                                {
+                                    $addFields: {
+                                        company: { $first: "$company" }
+                                    }
+                                },
+                                {
+                                    $project: {
+                                        company: 1
+                                    }
                                 }
                             ]
                         }
+                    },
+                    {
+                        $addFields: {
+                            details: {
+                                $first: "$details"
+                            }
+                        }
+                    },
+                    {
+                        $project: {
+                            avatar: 1,
+                            name: 1,
+                            details: 1
+                        }
                     }
                 ]
+            }
+        },
+        {
+            $addFields: {
+                postedBy: {
+                    $first: "$postedBy"
+                }
             }
         }
     ])

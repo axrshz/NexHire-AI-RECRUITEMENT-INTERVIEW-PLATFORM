@@ -7,6 +7,7 @@ import companyMemberModel from "../models/companyMember.model.js";
 import mongoose from "mongoose";
 
 
+
 const createCompany = asyncHandler(async (req, res) => {
     const { name, website, industry, description } = req.body;
     const userId = req.user?._id;
@@ -34,9 +35,6 @@ const createCompany = asyncHandler(async (req, res) => {
         logoUrl = uploadResult.url;
     }
 
-    if (!logoUrl) {
-        throw new apiError(400, "Company logo is required");
-    }
 
     // Create Company
     const company = await companyModel.create({
@@ -44,7 +42,7 @@ const createCompany = asyncHandler(async (req, res) => {
         website: website.trim(),
         industry: industry.trim(),
         description: description.trim(),
-        logo: logoUrl,
+        logo: req.file ? logoUrl : "",
         createdBy: userId
     });
 
@@ -65,9 +63,8 @@ const createCompany = asyncHandler(async (req, res) => {
     );
 });
 
-/**
- * 2. Join an existing company by companyId
- */
+
+
 const joinCompany = asyncHandler(async (req, res) => {
     const { designation } = req.body;
     const companyId = req.params.companyId;
@@ -121,39 +118,34 @@ const joinCompany = asyncHandler(async (req, res) => {
 });
 
 
-const listCompanies = asyncHandler(async (req, res) => {
-    const { search } = req.body;
 
-    const regex = new RegExp(search, "i")
+const listCompanies = asyncHandler(async (req, res) => {
+    const search = req.body?.search;
+
+    const regex = new RegExp(search.trim(), "i")
 
     const companies = await companyModel.aggregate([
         {
-            $match: {
-                name: { $regex: regex }
-            }
+            $match: { name: { $regex: regex } }
         },
         {
             $project: {
                 _id: 1,
                 name: 1,
                 logo: 1,
-                website: 1
+                website: 1,
+                industry: 1
             }
         }
-    ])
-
-    if (!companies) {
-        throw new apiError(400, "no companies matched your search")
-    }
+    ]);
 
     return res.status(200).json(
         new apiResponse(200, "Companies fetched successfully", companies)
     );
 });
 
-/**
- * 4. Get current logged-in recruiter's company membership
- */
+
+
 const getMyCompany = asyncHandler(async (req, res) => {
     const userId = req.user?._id;
 
@@ -172,9 +164,58 @@ const getMyCompany = asyncHandler(async (req, res) => {
     );
 });
 
+
+
+const addCompanyLogo = asyncHandler(async (req, res) => {
+    const companyId = req.params.companyId 
+    const userId = req.user?._id;
+
+    if (!companyId) {
+        throw new apiError(400, "Company ID is required");
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(companyId)) {
+        throw new apiError(400, "Invalid Company ID format");
+    }
+
+    const company = await companyModel.findById(companyId);
+    if (!company) {
+        throw new apiError(404, "Company not found");
+    }
+
+    // Verify user is company creator or owner
+    const isCreator = company.createdBy.toString() === userId.toString();
+    const membership = await companyMemberModel.findOne({
+        userId,
+        companyId,
+        status: "active"
+    });
+
+    if (!isCreator && (!membership || membership.role !== "owner")) {
+        throw new apiError(403, "You do not have permission to update this company's logo");
+    }
+
+    if (!req.file) {
+        throw new apiError(400, "Logo image file is required");
+    }
+
+    const uploadResult = await uploadFile(req.file.path);
+    if (!uploadResult || !uploadResult.url) {
+        throw new apiError(500, "Failed to upload logo to Cloudinary");
+    }
+
+    company.logo = uploadResult.url;
+    await company.save();
+
+    return res.status(200).json(
+        new apiResponse(200, "Company logo uploaded successfully", company)
+    );
+});
+
 export default {
     createCompany,
     joinCompany,
     listCompanies,
-    getMyCompany
+    getMyCompany,
+    addCompanyLogo
 };

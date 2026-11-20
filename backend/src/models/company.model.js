@@ -22,8 +22,7 @@ const companySchema = new mongoose.Schema({
         trim: true
     },
     logo: {
-        type: String,
-        required: [true, "Logo is required"]
+        type: String
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,

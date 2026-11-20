@@ -6,7 +6,7 @@ import upload from "../middlewares/multer.js";
 const route = express.Router();
 
 // List / search companies
-route.get("/companies", companyControllers.listCompanies);
+route.get("/search-companies", companyControllers.listCompanies);
 
 // Get logged-in recruiter's company
 route.get("/my-company", authMiddleware, companyControllers.getMyCompany);
@@ -16,5 +16,8 @@ route.post("/create", authMiddleware, upload.single("logo"), companyControllers.
 
 // Join existing company
 route.post("/join/:companyId", authMiddleware, companyControllers.joinCompany);
+
+// update company logo
+route.patch("/logo/:companyId", authMiddleware, upload.single("logo"), companyControllers.addCompanyLogo);
 
 export default route;
