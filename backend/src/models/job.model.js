@@ -16,10 +16,10 @@ const jobSchema = new mongoose.Schema({
     location: {
         type: String,
         required: [true, "Location is required"]
-    },  
+    },
     salary: {
         type: String,
-        required: [true, "Salary is required"]
+        default: "unpaid"
     },
     status: {
         type: String,
@@ -36,13 +36,9 @@ const jobSchema = new mongoose.Schema({
     },
     postedBy: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Recruiter",
+        ref: "user",
         required: true
-    },
-    applicants: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
-    }]
+    }
 }, {
     timestamps: true
 })
