@@ -7,12 +7,12 @@ import uploadFile from "../utils/cloudinary.js";
 import sendEmail from '../services/email.service.js'
 import { generateOtp, generateHTMLotp } from "../utils/otp.js"
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+
 
 const options = {
     httpOnly: true,
-    secure: true,
-    sameSite: "none"
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
 }
 
 const Register = asyncHandler(async function (req, res) {
@@ -43,9 +43,6 @@ const Register = asyncHandler(async function (req, res) {
         result = await uploadFile(req.file.path)
 
     }
-    else {
-        throw new apiError(400, "avatar is required")
-    }
 
     if (!password || password.length < 5 || password.length > 20) {
         throw new apiError(400, "password must be between 5 and 20 characters")
@@ -55,16 +52,13 @@ const Register = asyncHandler(async function (req, res) {
         throw new apiError(400, "please select your role")
     }
 
-    if (!result || !result.url) {
-        throw new apiError(500, "Failed to upload avatar to Cloudinary")
-    }
 
     const user = await userModel.create({
         name: name,
         email: email,
         password: password,
         role: role,
-        avatar: result.url
+        avatar: req.file ? result.url : ""
     })
 
     const otp = generateOtp()
@@ -163,13 +157,13 @@ const DefaultLogin = asyncHandler(async function (req, res) {
     )
 })
 
-
 const getCurrUser = asyncHandler(async function (req, res) {
     const curr_user_id = req.user._id
 
     const user = await userModel.findById(curr_user_id).select("-password -refreshToken")
 
-    const token = req.headers.authorization.split(" ")[1]
+    const authHeader = req.headers.authorization || req.headers.Authorization
+    const token = authHeader ? authHeader.split(" ")[1] : null
 
     return res.status(200).json(
         new apiResponse(200, "user fetched successfully", { user, accessToken: token })
@@ -204,7 +198,7 @@ const refreshToken = asyncHandler(async function (req, res) {
 
         return res.status(200).cookie("refreshToken", newRefreshToken, options)
             .json(
-                new apiResponse(200, "refreshed token successfully",  accessToken )
+                new apiResponse(200, "refreshed token successfully", { accessToken })
             )
     } catch (error) {
         throw new apiError(401, error?.message || "invalid refresh token")
