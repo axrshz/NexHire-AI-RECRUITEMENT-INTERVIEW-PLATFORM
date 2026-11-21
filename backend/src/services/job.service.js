@@ -10,13 +10,37 @@ const deleteJob = async (jobId) => {
     return job;
 }
 
-const getAllJobs = async (recruiterId) => {
+const getMyJobs = async (recruiterId) => {
     const jobs = await jobRepository.getAllJobs(recruiterId)
     return jobs;
+}
+
+const getFeedJobs = async () => {
+    const jobs = await jobRepository.getFeedJobs()
+    return jobs;
+}
+
+const getJobDetails = async (jobId) => {
+    const job = await jobRepository.getJob(jobId)
+    return job;
+}
+
+const createApplication = async (data) => {
+    const createdApplication = await jobRepository.createApplication(data)
+    return createdApplication;
+}
+
+const deleteApplication = async (data) => {
+    const deletedApplication = await jobRepository.deleteApplication(data)
+    return deletedApplication;
 }
 
 export default {
     createJob,
     deleteJob,
-    getAllJobs
+    getMyJobs,
+    getJobDetails,
+    getFeedJobs,
+    createApplication,
+    deleteApplication
 }

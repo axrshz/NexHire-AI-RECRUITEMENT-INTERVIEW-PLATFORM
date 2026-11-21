@@ -20,16 +20,6 @@ const applicationSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true
-    },
-    matchPercentage: {
-        type: Number,
-        min: 0,
-        max: 100
-    },
-    status: {
-        type: String,
-        default: "pending",
-        trim: true
     }
 }, {
     timestamps: true
