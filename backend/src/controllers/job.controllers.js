@@ -3,15 +3,14 @@ import asyncHandler from "../utils/asyncHandler.js";
 import apiResponse from "../utils/apiResponse.js"
 import apiError from "../utils/apiError.js";
 import jobService from "../services/job.service.js"
+import apiError from "../utils/apiError.js";
+import apiResponse from "../utils/apiResponse.js";
 
 const createJobPost = asyncHandler(async (req, res) => {
 
     const { title, description, experience, location, salary, status, requiredSkills, vacancies } = req.body
-
-    if (!title || !description || !experience || !location || !salary || !requiredSkills || !vacancies) {
-        throw new apiError(400, "all fields are required")
-    }
-
+    
+    
     const jobData = {
         title,
         description,

@@ -5,4 +5,18 @@ const createJob = async (jobData) => {
     return job;
 }
 
-export default { createJob };
+const deleteJob = async (jobId) => {
+    const job = await jobRepository.deleteJob(jobId)
+    return job;
+}
+
+const getAllJobs = async (recruiterId) => {
+    const jobs = await jobRepository.getAllJobs(recruiterId)
+    return jobs;
+}
+
+export default {
+    createJob,
+    deleteJob,
+    getAllJobs
+}
