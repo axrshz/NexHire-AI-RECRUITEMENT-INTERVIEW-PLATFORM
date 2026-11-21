@@ -12,6 +12,7 @@ const interviewSchema = new mongoose.Schema({
         ref: "Job",
         required: function () { return this.mode === "recruitment"; }
     },
+    //null when in practice mode
     candidateId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",

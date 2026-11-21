@@ -30,10 +30,6 @@ const applicationSchema = new mongoose.Schema({
         type: String,
         default: "pending",
         trim: true
-    },
-    appliedAt: {
-        type: Date,
-        default: Date.now
     }
 }, {
     timestamps: true

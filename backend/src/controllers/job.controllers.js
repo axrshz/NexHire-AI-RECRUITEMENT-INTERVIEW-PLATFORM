@@ -2,6 +2,7 @@ import jobModel from "../models/job.model.js"
 import asyncHandler from "../utils/asyncHandler.js";
 import apiResponse from "../utils/apiResponse.js"
 import apiError from "../utils/apiError.js";
+import jobService from "../services/job.service.js"
 
 const createJobPost = asyncHandler(async (req, res) => {
 
@@ -11,7 +12,7 @@ const createJobPost = asyncHandler(async (req, res) => {
         throw new apiError(400, "all fields are required")
     }
 
-    const job = await jobModel.create({
+    const jobData = {
         title,
         description,
         experience,
@@ -21,7 +22,9 @@ const createJobPost = asyncHandler(async (req, res) => {
         requiredSkills,
         vacancies,
         postedBy: req.user?._id
-    })
+    }
+
+    const job = await jobService.createJob(jobData)
 
     if (!job) {
         throw new apiError(400, "could'nt create job")
