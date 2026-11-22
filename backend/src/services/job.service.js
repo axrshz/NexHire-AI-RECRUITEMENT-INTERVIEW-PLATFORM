@@ -35,6 +35,21 @@ const deleteApplication = async (data) => {
     return deletedApplication;
 }
 
+const deleteJobPost = async (jobId) => {
+    const deletedJob = await jobRepository.deleteJob(jobId)
+    return deletedJob;
+}
+
+const findJobById = async (jobId) => {
+    const job = await jobRepository.getJob(jobId)
+    return job;
+}
+
+const getJobApplicants = async (jobId) => {
+    const applicants = await jobRepository.getJobApplicants(jobId)
+    return applicants;
+}
+
 export default {
     createJob,
     deleteJob,
@@ -42,5 +57,8 @@ export default {
     getJobDetails,
     getFeedJobs,
     createApplication,
-    deleteApplication
+    deleteApplication,
+    deleteJobPost,
+    findJobById,
+    getJobApplicants
 }
