@@ -9,6 +9,16 @@ const jobSchema = new mongoose.Schema({
         type: String,
         required: [true, "Job description is required"]
     },
+    type: {
+        type: String,
+        enum: ["Full-time", "Part-time", "Internship"],
+        required: [true, "Job description is required"]
+    },
+    method: {
+        type: String,
+        enum: ["Remote", "On-site"],
+        required: [true, "method is required"]
+    },
     experience: {
         type: String,
         required: [true, "Experience is required"]

@@ -3,19 +3,13 @@ import { useNavigate } from 'react-router-dom'
 
 export default function RecruiterHome() {
   const navigate = useNavigate()
-  const [currentUser] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('currentUser')) || null
-    } catch {
-      return null
-    }
-  })
+  const [currUser, setCurrUser] = useState({})
+  const [jobs, setJobs] = useState([])
 
   const [activeTab, setActiveTab] = useState('candidates')
 
   const handleLogout = () => {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('currentUser')
+  
     navigate('/login')
   }
 

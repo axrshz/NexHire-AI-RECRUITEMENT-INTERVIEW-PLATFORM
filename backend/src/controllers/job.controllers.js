@@ -13,13 +13,19 @@ import userModel from "../models/user.model.js";
 
 const createJobPost = asyncHandler(async (req, res) => {
 
-    const { title, description, experience, location, salary, status, requiredSkills, vacancies } = req.body
+    const { title, description, type, method, experience, location, salary, requiredSkills, vacancies } = req.body
+
+    if (!title || !description || !type || !method || !experience || !location || !requiredSkills || !vacancies) {
+        throw new apiError(400, "all fields are required")
+    }
 
 
     const jobData = {
         title,
         description,
         experience,
+        type,
+        method,
         location,
         salary,
         status: "Open",
@@ -85,6 +91,9 @@ const jobApplicationToggle = asyncHandler(async function (req, res) {
     let createdApplication = null
 
     if (!foundApplication) {
+        if (foundJob.vacancies === 0) {
+            throw new apiError(400, "sorry, the vacancy is full")
+        }
         const candidate = await candidateModel.findOne({ userId: user_id }).select("resumeUrl")
         const resumeUrl = candidate.resumeUrl
         const job = await jobModel.aggregate([
@@ -115,12 +124,15 @@ const jobApplicationToggle = asyncHandler(async function (req, res) {
             candidateId: user_id,
             jobId: job_id,
             companyId: job[0].postedBy,
-            resumeUrl,
+            resumeUrl
         })
 
         if (!createdApplication) {
             throw new apiError(400, "could'nt create application")
         }
+
+        foundJob.vacancies -= 1;
+        await foundJob.save()
 
         const user = await userModel.findById(user_id).select("name")
         await notificationModel.create({
@@ -149,8 +161,8 @@ const jobApplicationToggle = asyncHandler(async function (req, res) {
 
 //getJobApplicants(candidate list with name and avatar)(params: job_id)
 
-//accept application(send notification to candidate)
+//accept application(send notification to candidate)(params: job_id, user_id)
 
-//reject application
+//reject application(params: job_id, user_id)
 
 export default { createJobPost, getFeedJobs, getJobDetails, jobApplicationToggle }
