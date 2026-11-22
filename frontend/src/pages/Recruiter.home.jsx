@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 export default function RecruiterHome() {
@@ -8,8 +8,12 @@ export default function RecruiterHome() {
 
   const [activeTab, setActiveTab] = useState('candidates')
 
+  useEffect(() => {
+    
+  }, [])
+
   const handleLogout = () => {
-  
+
     navigate('/login')
   }
 
@@ -155,21 +159,19 @@ export default function RecruiterHome() {
             <div className="flex gap-2">
               <button
                 onClick={() => setActiveTab('candidates')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition ${
-                  activeTab === 'candidates'
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition ${activeTab === 'candidates'
                     ? 'bg-rose-600 text-white'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
+                  }`}
               >
                 All Candidates
               </button>
               <button
                 onClick={() => setActiveTab('jobs')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition ${
-                  activeTab === 'jobs'
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition ${activeTab === 'jobs'
                     ? 'bg-rose-600 text-white'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
+                  }`}
               >
                 Active Jobs
               </button>
