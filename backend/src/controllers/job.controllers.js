@@ -3,13 +3,11 @@ import asyncHandler from "../utils/asyncHandler.js";
 import apiResponse from "../utils/apiResponse.js"
 import apiError from "../utils/apiError.js";
 import jobService from "../services/job.service.js"
-import apiError from "../utils/apiError.js";
-import apiResponse from "../utils/apiResponse.js";
 import applicationModel from "../models/application.model.js";
 import candidateModel from "../models/candidate.model.js"
 import mongoose from "mongoose";
 import companyMemberModel from "../models/companyMember.model.js";
-import notificationModel from "../models/companyMember.model.js"
+import notificationModel from "../models/notification.model.js"
 import userModel from "../models/user.model.js";
 
 
@@ -87,14 +85,15 @@ const jobApplicationToggle = asyncHandler(async function (req, res) {
     let createdApplication = null
 
     if (!foundApplication) {
-        const resumeUrl = await candidateModel.findById(user_id).select("resumeUrl")
+        const candidate = await candidateModel.findOne({ userId: user_id }).select("resumeUrl")
+        const resumeUrl = candidate.resumeUrl
         const job = await jobModel.aggregate([
             {
                 $match: { _id: new mongoose.Types.ObjectId(job_id) }
             },
             {
                 $lookup: {
-                    from: "CompanyMembers",
+                    from: "companymembers",
                     localField: "postedBy",
                     foreignField: "userId",
                     as: "postedBy",
@@ -123,24 +122,24 @@ const jobApplicationToggle = asyncHandler(async function (req, res) {
             throw new apiError(400, "could'nt create application")
         }
 
-        const fullname = await userModel.findById(user_id).select("name")
+        const user = await userModel.findById(user_id).select("name")
         await notificationModel.create({
             recipientId: foundJob.postedBy, // The recruiter
             type: "NEW_APPLICATION",
             title: "New Applicant Received",
-            message: `${fullname} just applied for the ${job.title}.`,
-            actionUrl: `/recruiter/jobs/${job._id}`,
+            message: `${user.name} just applied for the ${foundJob.title}.`,
+            actionUrl: `/recruiter/jobs/${foundJob._id}`,
             isRead: false
+        })
+    } else {
+        await jobService.deleteApplication({
+            candidateId: user_id,
+            jobId: job_id
         })
     }
 
-    await jobService.deleteApplication({
-        candidateId: user_id,
-        jobId: job_id
-    })
-
-    return res.status(foundApplication ? 204 : 201).json(
-        new apiResponse(foundApplication ? 204 : 201, foundApplication ? "unapplied successfully" : "applied successfully", foundApplication ? null : createdApplication)
+    return res.status(foundApplication ? 200 : 201).json(
+        new apiResponse(foundApplication ? 200 : 201, foundApplication ? "unapplied successfully" : "applied successfully", foundApplication ? null : createdApplication)
     )
 })
 

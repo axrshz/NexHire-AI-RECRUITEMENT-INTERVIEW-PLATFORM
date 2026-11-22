@@ -121,7 +121,9 @@ const joinCompany = asyncHandler(async (req, res) => {
 
 const listCompanies = asyncHandler(async (req, res) => {
     const search = req.body?.search;
-
+    if (!search) {
+        throw new apiError(400, "type the name of a company")
+    }
     const regex = new RegExp(search.trim(), "i")
 
     const companies = await companyModel.aggregate([
@@ -138,7 +140,9 @@ const listCompanies = asyncHandler(async (req, res) => {
             }
         }
     ]);
-
+    if (!companies || !(companies.length > 0)) {
+        throw new apiError(400, "no companies matched your search")
+    }
     return res.status(200).json(
         new apiResponse(200, "Companies fetched successfully", companies)
     );
@@ -167,7 +171,7 @@ const getMyCompany = asyncHandler(async (req, res) => {
 
 
 const addCompanyLogo = asyncHandler(async (req, res) => {
-    const companyId = req.params.companyId 
+    const companyId = req.params.companyId
     const userId = req.user?._id;
 
     if (!companyId) {
@@ -238,10 +242,10 @@ const leaveCompany = asyncHandler(async (req, res) => {
 
     // Safeguard: Sole owner cannot leave without transferring ownership
     if (membership.role === "owner") {
-            throw new apiError(
-                400,
-                "As the sole owner, you cannot leave the company. Please transfer ownership to another member first."
-            );  
+        throw new apiError(
+            400,
+            "As the sole owner, you cannot leave the company. Please transfer ownership to another member first."
+        );
     }
 
     // Remove membership

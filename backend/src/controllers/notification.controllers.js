@@ -15,4 +15,4 @@ const deleteNotification = asyncHandler()
 const deleteAllNotification = asyncHandler()
 
 
-export default {}
+export default {getAllNotifications, readNotification, deleteAllNotification, deleteNotification}

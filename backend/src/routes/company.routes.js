@@ -6,7 +6,7 @@ import upload from "../middlewares/multer.js";
 const route = express.Router();
 
 // List / search companies
-route.get("/search-companies", companyControllers.listCompanies);
+route.post("/search-companies", companyControllers.listCompanies);
 
 // Get logged-in recruiter's company
 route.get("/my-company", authMiddleware, companyControllers.getMyCompany);

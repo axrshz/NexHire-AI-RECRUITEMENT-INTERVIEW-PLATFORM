@@ -31,14 +31,14 @@ const getFeedJobs = async () => {
                 pipeline: [
                     {
                         $lookup: {
-                            from: "CompanyMembers",
+                            from: "companymembers",
                             localField: "_id",
                             foreignField: "userId",
                             as: "details",
                             pipeline: [
                                 {
                                     $lookup: {
-                                        from: "Companies",
+                                        from: "companies",
                                         localField: "companyId",
                                         foreignField: "_id",
                                         as: "company",
@@ -112,14 +112,14 @@ const getJob = async (jobId) => {
                 pipeline: [
                     {
                         $lookup: {
-                            from: "CompanyMembers",
+                            from: "companymembers",
                             localField: "_id",
                             foreignField: "userId",
                             as: "details",
                             pipeline: [
                                 {
                                     $lookup: {
-                                        from: "Companies",
+                                        from: "companies",
                                         localField: "companyId",
                                         foreignField: "_id",
                                         as: "company",
@@ -183,12 +183,12 @@ const getJob = async (jobId) => {
 
 const createApplication = async (data) => {
     const createdApplication = await applicationModel.create(data)
-    return createApplication;
+    return createdApplication;
 }
 
 const deleteApplication = async (data) => {
     const deletedApplication = await applicationModel.deleteMany(data)
-    return deleteApplication;
+    return deletedApplication;
 }
 
 export default { createJob, deleteJob, getMyJobs, getJob, getFeedJobs, createApplication, deleteApplication };

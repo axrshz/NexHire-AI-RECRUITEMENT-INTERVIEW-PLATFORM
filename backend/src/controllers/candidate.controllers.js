@@ -3,7 +3,6 @@ import apiError from "../utils/apiError.js";
 import apiResponse from "../utils/apiResponse.js";
 import uploadFile from "../utils/cloudinary.js";
 import candidateModel from "../models/candidate.model.js";
-import { json } from "express";
 
 
 
