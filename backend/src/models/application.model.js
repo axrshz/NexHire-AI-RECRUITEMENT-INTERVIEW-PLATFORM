@@ -20,6 +20,11 @@ const applicationSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true
+    },
+    status: {
+        type: String,
+        enum: ["Rejected", "Due", "Accepted"],
+        default: "Due"
     }
 }, {
     timestamps: true
