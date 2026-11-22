@@ -6,13 +6,14 @@ import companyModel from "../models/company.model.js";
 import companyMemberModel from "../models/companyMember.model.js";
 import mongoose from "mongoose";
 
-const getAllNotifications = asyncHandler()
 
-const readNotification = asyncHandler()
+const getAllNotifications = asyncHandler()//middlweware userId
 
-const deleteNotification = asyncHandler()
+const readNotification = asyncHandler()//notificaton_id
 
-const deleteAllNotification = asyncHandler()
+const deleteNotification = asyncHandler()//notification_id
+
+const deleteAllNotification = asyncHandler()//middlweware userId
 
 
 export default {getAllNotifications, readNotification, deleteAllNotification, deleteNotification}
