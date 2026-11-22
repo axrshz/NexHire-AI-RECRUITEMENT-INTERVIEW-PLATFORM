@@ -191,4 +191,29 @@ const deleteApplication = async (data) => {
     return deletedApplication;
 }
 
-export default { createJob, deleteJob, getMyJobs, getJob, getFeedJobs, createApplication, deleteApplication };
+const getAllJobs = async (recruiterId) => {
+    const jobs = await jobModel.find({ postedBy: recruiterId })
+    return jobs;
+}
+
+const getJobApplicants = async (jobId) => {
+    const applicants = await applicationModel.aggregate([
+        {
+            $match: { jobId: jobId }
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "userId",
+                foreignField: "_id",
+                as: "userDetails"
+            }
+        },
+        {
+            $unwind: "$userDetails"
+        }
+    ])
+    return applicants;
+}
+
+export default { createJob, deleteJob, getMyJobs, getJob, getFeedJobs, createApplication, deleteApplication, getAllJobs, getJobApplicants };

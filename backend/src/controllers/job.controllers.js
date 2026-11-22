@@ -157,12 +157,52 @@ const jobApplicationToggle = asyncHandler(async function (req, res) {
 
 //delete job
 
+const deleteJobPost = asyncHandler(async function (req, res) {
+    const { job_id } = req.params
+    const user_id = req.user._id
+    const foundJob = await jobService.findJobById(job_id)
+    if (!foundJob) {
+        throw new apiError(400, "job does'nt exist")
+    }
+    if (foundJob.postedBy.toString() !== user_id.toString()) {
+        throw new apiError(403, "you are not the owner of this job")
+    }
+    const deletedJob = await jobService.deleteJobPost(job_id)
+    return res.status(200).json(
+        new apiResponse(200, "job deleted successfully", deletedJob)
+    )
+})
+
 //getMyJobs
 
+const getMyJobs = asyncHandler(async function (req, res) {
+    const user_id = req.user._id
+    const foundJobs = await jobService.getMyJobs(user_id)
+    if (!foundJobs) {
+        throw new apiError(400, "you have not posted any jobs yet")
+    }
+    return res.status(200).json(
+        new apiResponse(200, "jobs fetched successfully", foundJobs)
+    )
+})
+
 //getJobApplicants(candidate list with name and avatar)(params: job_id)
+
+const getJobApplicants = asyncHandler(async function (req, res) {
+    const { job_id } = req.params
+    const foundJob = await jobService.findJobById(job_id)
+    if (!foundJob) {
+        throw new apiError(400, "job does not exist")
+    }
+    // Implementation for fetching job applicants
+    const applicants = await jobService.getJobApplicants(job_id)
+    return res.status(200).json(
+        new apiResponse(200, "applicants fetched successfully", applicants)
+    )
+})
 
 //accept application(send notification to candidate)(params: job_id, user_id)
 
 //reject application(params: job_id, user_id)
 
-export default { createJobPost, getFeedJobs, getJobDetails, jobApplicationToggle }
+export default { createJobPost, getFeedJobs, getJobDetails, jobApplicationToggle, deleteJobPost, getMyJobs, getJobApplicants }
