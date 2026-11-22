@@ -1,15 +1,21 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import api from "../api/axios.js"
+import asyncHandler from '../../../backend/src/utils/asyncHandler.js'
 
 export default function RecruiterHome() {
   const navigate = useNavigate()
   const [currUser, setCurrUser] = useState({})
-  const [jobs, setJobs] = useState([])
 
   const [activeTab, setActiveTab] = useState('candidates')
 
   useEffect(() => {
-    
+    asyncHandler(async function () {
+      api.get("/user/get-curr-user")
+        .then((res) => {
+          setCurrUser(res.data.data.user)
+        })
+    })
   }, [])
 
   const handleLogout = () => {
@@ -160,8 +166,8 @@ export default function RecruiterHome() {
               <button
                 onClick={() => setActiveTab('candidates')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition ${activeTab === 'candidates'
-                    ? 'bg-rose-600 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-rose-600 text-white'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
               >
                 All Candidates
@@ -169,8 +175,8 @@ export default function RecruiterHome() {
               <button
                 onClick={() => setActiveTab('jobs')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition ${activeTab === 'jobs'
-                    ? 'bg-rose-600 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-rose-600 text-white'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
               >
                 Active Jobs
