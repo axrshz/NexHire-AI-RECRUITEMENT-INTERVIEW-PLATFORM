@@ -212,10 +212,51 @@ const addCompanyLogo = asyncHandler(async (req, res) => {
     );
 });
 
+
+
+const leaveCompany = asyncHandler(async (req, res) => {
+    const companyId = req.params.companyId || req.body.companyId;
+    const userId = req.user?._id;
+
+    if (!companyId) {
+        throw new apiError(400, "Company ID is required to leave the company");
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(companyId)) {
+        throw new apiError(400, "Invalid Company ID format");
+    }
+
+    // Find the user's membership in this company
+    const membership = await companyMemberModel.findOne({
+        userId,
+        companyId
+    });
+
+    if (!membership) {
+        throw new apiError(404, "You are not a member of this company");
+    }
+
+    // Safeguard: Sole owner cannot leave without transferring ownership
+    if (membership.role === "owner") {
+            throw new apiError(
+                400,
+                "As the sole owner, you cannot leave the company. Please transfer ownership to another member first."
+            );  
+    }
+
+    // Remove membership
+    await companyMemberModel.findByIdAndDelete(membership._id);
+
+    return res.status(200).json(
+        new apiResponse(200, "You have successfully left the company")
+    );
+});
+
 export default {
     createCompany,
     joinCompany,
     listCompanies,
     getMyCompany,
-    addCompanyLogo
+    addCompanyLogo,
+    leaveCompany
 };

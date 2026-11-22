@@ -9,6 +9,8 @@ import applicationModel from "../models/application.model.js";
 import candidateModel from "../models/candidate.model.js"
 import mongoose from "mongoose";
 import companyMemberModel from "../models/companyMember.model.js";
+import notificationModel from "../models/companyMember.model.js"
+import userModel from "../models/user.model.js";
 
 
 const createJobPost = asyncHandler(async (req, res) => {
@@ -77,6 +79,11 @@ const jobApplicationToggle = asyncHandler(async function (req, res) {
         candidateId: user_id
     })
 
+    const foundJob = await jobModel.findById(job_id)
+    if (!foundJob) {
+        throw new apiError(400, "job does'nt exist")
+    }
+
     let createdApplication = null
 
     if (!foundApplication) {
@@ -115,6 +122,16 @@ const jobApplicationToggle = asyncHandler(async function (req, res) {
         if (!createdApplication) {
             throw new apiError(400, "could'nt create application")
         }
+
+        const fullname = await userModel.findById(user_id).select("name")
+        await notificationModel.create({
+            recipientId: foundJob.postedBy, // The recruiter
+            type: "NEW_APPLICATION",
+            title: "New Applicant Received",
+            message: `${fullname} just applied for the ${job.title}.`,
+            actionUrl: `/recruiter/jobs/${job._id}`,
+            isRead: false
+        })
     }
 
     await jobService.deleteApplication({
@@ -133,6 +150,8 @@ const jobApplicationToggle = asyncHandler(async function (req, res) {
 
 //getJobApplicants(candidate list with name and avatar)(params: job_id)
 
+//accept application(send notification to candidate)
 
+//reject application
 
 export default { createJobPost, getFeedJobs, getJobDetails, jobApplicationToggle }

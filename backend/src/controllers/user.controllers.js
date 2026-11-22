@@ -226,4 +226,23 @@ const logout = asyncHandler(async function (req, res) {
     )
 })
 
-export default { Register, DefaultLogin, verifyOtp, getCurrUser, refreshToken, logout }
+const deleteAccount = asyncHandler(async function (req, res) {
+    const userId = req.user._id
+
+    if (!userId) {
+        throw new apiError(400, "user id is required")
+    }
+
+    const user = await userModel.findByIdAndDelete(userID)
+
+    if (!user) {
+        throw new apiError(400, "account does'nt exist")
+    }
+
+    return res.status(200).json(
+        new apiResponse(200, "account deleted successfully")
+    )
+
+})
+
+export default { Register, DefaultLogin, verifyOtp, getCurrUser, refreshToken, logout, deleteAccount }

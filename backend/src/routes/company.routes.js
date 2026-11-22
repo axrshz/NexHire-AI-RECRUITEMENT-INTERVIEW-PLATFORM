@@ -20,4 +20,7 @@ route.post("/join/:companyId", authMiddleware, companyControllers.joinCompany);
 // update company logo
 route.patch("/logo/:companyId", authMiddleware, upload.single("logo"), companyControllers.addCompanyLogo);
 
+// Leave company
+route.delete("/leave/:companyId", authMiddleware, companyControllers.leaveCompany);
+
 export default route;

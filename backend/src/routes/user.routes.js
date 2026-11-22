@@ -18,4 +18,6 @@ route.post("/verify-email", userControllers.verifyOtp)
 
 route.get("/logout", authMiddleware, userControllers.logout)
 
+route.delete("/delete", authMiddleware, userControllers.deleteAccount)
+
 export default route
