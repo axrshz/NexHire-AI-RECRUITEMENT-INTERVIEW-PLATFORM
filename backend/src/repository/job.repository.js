@@ -98,7 +98,7 @@ const getMyJobs = async (recruiterId) => {
     return jobs;
 }
 
-const getJob = async (jobId) => {
+const getJob = async (jobId, userId) => {
     const job = await jobModel.aggregate([
         {
             $match: { _id: new mongoose.Types.ObjectId(jobId) }
@@ -190,6 +190,7 @@ const deleteApplication = async (data) => {
     const deletedApplication = await applicationModel.deleteMany(data)
     return deletedApplication;
 }
+
 
 const getAllJobs = async (recruiterId) => {
     const jobs = await jobModel.find({ postedBy: recruiterId })

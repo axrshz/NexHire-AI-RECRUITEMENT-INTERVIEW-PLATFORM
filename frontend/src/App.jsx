@@ -31,11 +31,10 @@ function App() {
           <Route path="/candidate/home" element={<CandidateHome />} />
           <Route path="/candidate/applications" element={<CandidateApplications />} />
           <Route path="/candidate/interviews" element={<CandidateInterviews />} />
-          <Route path="/candidate/job/:id" element={<CandidateJob />} />
         </Route>
         <Route path="/candidate/practice" element={<CandidatePractice />} />
         <Route path="/candidate/profile" element={<CandidateProfile />} />
-
+        <Route path="/candidate/job/:id" element={<CandidateJob />} />
         {/* Fallback route */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

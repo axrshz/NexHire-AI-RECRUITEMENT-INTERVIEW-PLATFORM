@@ -61,6 +61,7 @@ const getFeedJobs = asyncHandler(async function (req, res) {
 
 const getJobDetails = asyncHandler(async function (req, res) {
     const { job_id } = req.params
+    const curr_user = req.user._id
 
     const jobDetails = await jobService.getJobDetails(job_id)
 
@@ -68,8 +69,17 @@ const getJobDetails = asyncHandler(async function (req, res) {
         throw new apiError(400, "could'nt fetch job details")
     }
 
+    let isApplied = false
+    const application = await applicationModel.findOne({
+        candidateId: new mongoose.Types.ObjectId(curr_user),
+        jobId: new mongoose.Types.ObjectId(job_id)
+    })
+    if (application) {
+        isApplied = true
+    }
+
     return res.status(200).json(
-        new apiResponse(200, "details fetched successfully", jobDetails)
+        new apiResponse(200, "details fetched successfully", { ...jobDetails, isApplied })
     )
 })
 
@@ -79,8 +89,8 @@ const jobApplicationToggle = asyncHandler(async function (req, res) {
     const user_id = req.user._id
 
     const foundApplication = await applicationModel.findOne({
-        jobId: job_id,
-        candidateId: user_id
+        jobId: new mongoose.Types.ObjectId(job_id),
+        candidateId: new mongoose.Types.ObjectId(user_id)
     })
 
     const foundJob = await jobModel.findById(job_id)
@@ -95,6 +105,9 @@ const jobApplicationToggle = asyncHandler(async function (req, res) {
             throw new apiError(400, "sorry, the vacancy is full")
         }
         const candidate = await candidateModel.findOne({ userId: user_id }).select("resumeUrl")
+        if (!candidate || !candidate.resumeUrl) {
+            throw new apiError(400, "Please complete your candidate profile and upload a resume before applying.")
+        }
         const resumeUrl = candidate.resumeUrl
         const job = await jobModel.aggregate([
             {
@@ -120,10 +133,12 @@ const jobApplicationToggle = asyncHandler(async function (req, res) {
             }
         ])
 
+        const targetCompanyId = job[0]?.postedBy || foundJob.companyId
+
         createdApplication = await jobService.createApplication({
             candidateId: user_id,
             jobId: job_id,
-            companyId: job[0].postedBy,
+            companyId: targetCompanyId,
             resumeUrl
         })
 
@@ -139,7 +154,7 @@ const jobApplicationToggle = asyncHandler(async function (req, res) {
             recipientId: foundJob.postedBy, // The recruiter
             type: "NEW_APPLICATION",
             title: "New Applicant Received",
-            message: `${user.name} just applied for the ${foundJob.title}.`,
+            message: `${user?.name || "A candidate"} just applied for the ${foundJob.title}.`,
             actionUrl: `/recruiter/jobs/${foundJob._id}`,
             isRead: false
         })
@@ -153,7 +168,7 @@ const jobApplicationToggle = asyncHandler(async function (req, res) {
     }
 
     return res.status(foundApplication ? 200 : 201).json(
-        new apiResponse(foundApplication ? 200 : 201, foundApplication ? "unapplied successfully" : "applied successfully", foundApplication ? null : createdApplication)
+        new apiResponse(foundApplication ? 200 : 201, foundApplication ? "unapplied successfully" : "applied successfully", foundApplication ? {isApplied: false} : {isApplied: true})
     )
 })
 
@@ -202,7 +217,6 @@ const getJobApplicants = asyncHandler(async function (req, res) {
         new apiResponse(200, "applicants fetched successfully", applicants)
     )
 })
-
 //accept application(send notification to candidate)(params: job_id, user_id)
 
 //reject application(params: job_id, user_id)
