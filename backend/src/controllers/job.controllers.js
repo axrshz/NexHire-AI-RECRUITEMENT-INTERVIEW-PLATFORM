@@ -148,6 +148,8 @@ const jobApplicationToggle = asyncHandler(async function (req, res) {
             candidateId: user_id,
             jobId: job_id
         })
+        foundJob.vacancies += 1
+        await foundJob.save()
     }
 
     return res.status(foundApplication ? 200 : 201).json(
