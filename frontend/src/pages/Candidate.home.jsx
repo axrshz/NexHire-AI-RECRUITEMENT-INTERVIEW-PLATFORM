@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from "../api/axios.js";
 import { asyncHandler } from "../api/axios.js";
 
 export default function CandidateHome() {
-  const [activeTab, setActiveTab] = useState("Foryou");
+  const [activeTab, setActiveTab] = useState("All");
   const [inputValue, setInputValue] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate()
 
   useEffect(() => {
     asyncHandler(async () => {
@@ -38,17 +39,14 @@ export default function CandidateHome() {
     return `${days}d ago`;
   };
 
+
   const filteredJobs = jobs.filter((job) => {
     // Tab filter
     if (activeTab === "Internships" && job.type !== "Internship") return false;
     if (activeTab === "Remote" && job.method !== "Remote") return false;
-    if (activeTab === "Entry-level") {
-      const exp = (job.experience || "").toLowerCase();
-      if (!exp.includes("0") && !exp.includes("1") && !exp.includes("entry") && !exp.includes("fresher")) {
-        return false;
-      }
-    }
-
+    if (activeTab === "On-site" && job.method !== "On-site") return false;
+    if (activeTab === "Full-time" && job.type !== "Full-time") return false;
+    if (activeTab === "Part-time" && job.type !== "Part-time") return false;
     // Search query filter
     if (inputValue.trim()) {
       const query = inputValue.toLowerCase().trim();
@@ -61,11 +59,12 @@ export default function CandidateHome() {
       const descMatch = job.description?.toLowerCase().includes(query);
       const skillMatch = job.requiredSkills?.some((s) => s.toLowerCase().includes(query));
       const locationMatch = job.location?.toLowerCase().includes(query);
-      return titleMatch || companyMatch || descMatch || skillMatch || locationMatch;
+      const typeMatch = job.type?.toLowerCase().includes(query)
+      return titleMatch || companyMatch || descMatch || skillMatch || locationMatch || typeMatch;
     }
-
     return true;
   });
+
 
   const sortedJobs = [...filteredJobs].sort((a, b) => {
     if (sortBy === "newest") {
@@ -137,10 +136,12 @@ export default function CandidateHome() {
           <div className="flex items-center justify-between flex-wrap gap-3 pt-1">
             <div className="flex items-center gap-2 overflow-x-auto pb-1">
               {[
-                { id: "Foryou", label: "For you" },
+                { id: "All", label: "All" },
                 { id: "Internships", label: "Internships" },
-                { id: "Entry-level", label: "Entry-level" },
+                { id: "Full-time", label: "Full-time" },
+                { id: "Part-time", label: "Part-time" },
                 { id: "Remote", label: "Remote" },
+                { id: "On-site", label: "On-site" },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -194,15 +195,15 @@ export default function CandidateHome() {
             </div>
             <h3 className="font-bold text-slate-800 text-base">No jobs found</h3>
             <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-              {inputValue || activeTab !== "Foryou"
+              {inputValue || activeTab !== "All"
                 ? "No roles match your current search and filters. Try clearing your search or switching categories."
                 : "No jobs have been posted yet. Check back soon for new openings!"}
             </p>
-            {(inputValue || activeTab !== "Foryou") && (
+            {(inputValue || activeTab !== "All") && (
               <button
                 onClick={() => {
                   setInputValue("");
-                  setActiveTab("Foryou");
+                  setActiveTab("All");
                 }}
                 className="mt-4 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold transition cursor-pointer"
               >
@@ -304,7 +305,7 @@ export default function CandidateHome() {
                   <div className="flex items-center gap-4 text-xs">
                     <span className="text-slate-400">{formatTimeAgo(job.createdAt)}</span>
                     <button
-                      onClick={() => alert(`Job: ${job.title} at ${companyName}`)}
+                      onClick={() => navigate(`/candidate/job/${job._id}`)}
                       className="font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1 cursor-pointer"
                     >
                       <span>View details</span>

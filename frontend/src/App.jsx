@@ -11,6 +11,7 @@ import CandidateProfile from './pages/Candidate.profile'
 import CandidateApplications from './pages/Candidate.applications'
 import CandidateInterviews from './pages/Candidate.interviews'
 import CandidatePractice from './pages/Candidate.practice'
+import CandidateJob from './pages/Candidate.job'
 
 function App() {
   // i am adarsh
@@ -30,6 +31,7 @@ function App() {
           <Route path="/candidate/home" element={<CandidateHome />} />
           <Route path="/candidate/applications" element={<CandidateApplications />} />
           <Route path="/candidate/interviews" element={<CandidateInterviews />} />
+          <Route path="/candidate/job/:id" element={<CandidateJob />} />
         </Route>
         <Route path="/candidate/practice" element={<CandidatePractice />} />
         <Route path="/candidate/profile" element={<CandidateProfile />} />

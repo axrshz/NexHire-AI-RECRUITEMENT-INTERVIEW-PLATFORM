@@ -15,6 +15,9 @@ export default function RecruiterHome() {
         .then((res) => {
           setCurrUser(res.data.data.user)
         })
+        .catch((err)=>{
+          console.log(err.response.message)
+        })
     })
   }, [])
 

@@ -35,10 +35,6 @@ const candidateSchema = new mongoose.Schema({
         type: String,
         trim: true,
         default: ""
-    },
-    matchScore: {
-        type: Number,
-        default: 0
     }
 }, {
     timestamps: true
