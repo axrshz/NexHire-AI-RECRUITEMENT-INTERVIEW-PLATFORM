@@ -16,7 +16,6 @@ function CandidateJob() {
     // Fetch job details on mount & handle token refresh automatically on reload
     useEffect(() => {
         let isMounted = true
-
         const fetchJob = async () => {
             setLoading(true)
             setErrorMsg(null)
@@ -39,20 +38,18 @@ function CandidateJob() {
                 }
             }
         }
-
         if (id) {
             fetchJob()
         }
-
         return () => {
             isMounted = false
         }
     }, [id])
 
+
     // Apply / Unapply toggle with instant state update
     const onApply = () => {
         if (actionLoading || loading) return
-
         setApplied((prev) => !prev)
         setActionLoading(true)
         asyncHandler(async () => {
@@ -72,6 +69,7 @@ function CandidateJob() {
         })
     }
 
+    
     const formatTimeAgo = (dateString) => {
         if (!dateString) return 'Recently'
         const diff = Date.now() - new Date(dateString).getTime()
@@ -113,7 +111,7 @@ function CandidateJob() {
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                         </svg>
-                        <span>Back to Jobs</span>
+                        <span>Back</span>
                     </button>
 
                     <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">

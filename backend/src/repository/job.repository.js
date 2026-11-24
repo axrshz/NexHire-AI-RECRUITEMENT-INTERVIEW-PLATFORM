@@ -15,7 +15,9 @@ const deleteJob = async (jobId) => {
 const getFeedJobs = async () => {
     const jobs = await jobModel.aggregate([
         {
-            $match: {}
+            $match: {
+                status: "Open"
+            }
         },
         {
             $sort: {
@@ -217,4 +219,48 @@ const getJobApplicants = async (jobId) => {
     return applicants;
 }
 
-export default { createJob, deleteJob, getMyJobs, getJob, getFeedJobs, createApplication, deleteApplication, getAllJobs, getJobApplicants };
+const getMyApplications = async (userId) => {
+    const applications = await applicationModel.aggregate([
+        {
+            $match: { candidateId: new mongoose.Types.ObjectId(userId) }
+        },
+        {
+            $lookup: {
+                from: "jobs",
+                localField: "jobId",
+                foreignField: "_id",
+                as: "jobId"
+            }
+        },
+        {
+            $lookup: {
+                from: "companies",
+                localField: "companyId",
+                foreignField: "_id",
+                as: "companyId",
+                pipeline: [
+                    {
+                        $project: {
+                            name: 1,
+                            logo: 1
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $addFields: {
+                jobId: { $first: "$jobId" },
+                companyId: { $first: "$companyId" }
+            }
+        },
+        {
+            $project: {
+                resumeUrl: 0
+            }
+        }
+    ])
+    return applications
+}
+
+export default { createJob, deleteJob, getMyJobs, getJob, getFeedJobs, createApplication, deleteApplication, getAllJobs, getJobApplicants, getMyApplications };

@@ -10,6 +10,7 @@ const DEFAULT_AVATAR = 'https://ui-avatars.com/api/?background=f43f5e&color=fff&
 export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [applications, setApplications] = useState(0)
 
   const active = location.pathname.endsWith("/candidate/applications")
     ? "applications"
@@ -27,6 +28,27 @@ export default function Sidebar() {
       }
     })
   }, [])
+
+   const fetchApplications = async () => {
+    try {
+      await asyncHandler(async () => {
+        const res = await api.get('/job/user-applications');
+        if (res?.data?.data) {
+          setApplications(res.data.data.length);
+        }
+      });
+    } catch (err) {
+      console.error('Failed to load applications:', err);
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchApplications();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleLogout = async () => {
     api.get('/user/logout')
@@ -98,7 +120,7 @@ export default function Sidebar() {
                 <span>My Applications</span>
               </div>
               <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-[#fdeaea] text-rose-600 border border-[#f7d6d6]">
-                4
+                {applications}
               </span>
             </div>
 

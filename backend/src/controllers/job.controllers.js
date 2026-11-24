@@ -168,7 +168,7 @@ const jobApplicationToggle = asyncHandler(async function (req, res) {
     }
 
     return res.status(foundApplication ? 200 : 201).json(
-        new apiResponse(foundApplication ? 200 : 201, foundApplication ? "unapplied successfully" : "applied successfully", foundApplication ? {isApplied: false} : {isApplied: true})
+        new apiResponse(foundApplication ? 200 : 201, foundApplication ? "unapplied successfully" : "applied successfully", foundApplication ? { isApplied: false } : { isApplied: true })
     )
 })
 
@@ -217,8 +217,21 @@ const getJobApplicants = asyncHandler(async function (req, res) {
         new apiResponse(200, "applicants fetched successfully", applicants)
     )
 })
+
+const getMyApplications = asyncHandler(async function (req, res) {
+    const userId = req.user._id
+
+    const applications = await jobService.getMyApplications(userId)
+    if (!applications) {
+        throw new apiError(400, "could not fetch applications")
+    }
+
+    return res.status(200).json(
+        new apiResponse(200, "applications fetched successfully", applications)
+    )
+})
 //accept application(send notification to candidate)(params: job_id, user_id)
 
 //reject application(params: job_id, user_id)
 
-export default { createJobPost, getFeedJobs, getJobDetails, jobApplicationToggle, deleteJobPost, getMyJobs, getJobApplicants }
+export default { createJobPost, getFeedJobs, getJobDetails, jobApplicationToggle, deleteJobPost, getMyJobs, getJobApplicants, getMyApplications }
