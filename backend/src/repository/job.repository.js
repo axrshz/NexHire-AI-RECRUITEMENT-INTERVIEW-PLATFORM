@@ -216,4 +216,9 @@ const getJobApplicants = async (jobId) => {
     return applicants;
 }
 
-export default { createJob, deleteJob, getMyJobs, getJob, getFeedJobs, createApplication, deleteApplication, getAllJobs, getJobApplicants };
+const getApplication = async (applicationId) => {
+    const application = await applicationModel.findById(applicationId)
+    return application;
+}
+
+export default { createJob, deleteJob, getMyJobs, getJob, getFeedJobs, createApplication, deleteApplication, getAllJobs, getJobApplicants, getApplication };

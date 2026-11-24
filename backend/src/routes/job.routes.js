@@ -10,5 +10,7 @@ route.get("/feed", jobControllers.getFeedJobs)
 route.get("/job-details/:job_id", authMiddleware, jobControllers.getJobDetails)
 route.post("/apply/:job_id", authMiddleware, jobControllers.jobApplicationToggle)
 route.delete("/delete-job/:job_id", authMiddleware, jobControllers.deleteJobPost)
+route.post("/accept-application/:applicationId", authMiddleware, jobControllers.acceptApplication)
+route.post("/reject-application/:applicationId", authMiddleware, jobControllers.rejectApplication)
 
 export default route

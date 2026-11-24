@@ -203,6 +203,48 @@ const getJobApplicants = asyncHandler(async function (req, res) {
 
 //accept application(send notification to candidate)(params: job_id, user_id)
 
+const acceptApplication = asyncHandler(async function (req, res) {
+    const { applicationId } = req.params
+    const user_id = req.user._id
+    const application = await jobService.findApplicationById(applicationId)
+
+    if (!application) {
+        throw new apiError(400, "application does not exist")
+    }
+    if (application.jobId.toString() !== job_id.toString()) {
+        throw new apiError(400, "application does not belong to this job")
+    }
+    if (application.companyId.toString() !== user_id.toString()) {
+        throw new apiError(403, "you are not the owner of this job")
+    }
+    if (application.status === "Accepted") {
+        throw new apiError(400, "application is already accepted")
+    }
+    application.status = "Accepted"
+    await application.save()
+
+})
+
 //reject application(params: job_id, user_id)
 
-export default { createJobPost, getFeedJobs, getJobDetails, jobApplicationToggle, deleteJobPost, getMyJobs, getJobApplicants }
+const rejectApplication = asyncHandler(async function (req, res) {
+    const { applicationId } = req.params
+    const user_id = req.user._id
+    const application = await jobService.findApplicationById(applicationId)
+    if (!application) {
+        throw new apiError(400, "application does not exist")
+    }
+    if (application.jobId.toString() !== job_id.toString()) {
+        throw new apiError(400, "application does not belong to this job")
+    }
+    if (application.companyId.toString() !== user_id.toString()) {
+        throw new apiError(403, "you are not the owner of this job")
+    }
+    if (application.status === "Rejected") {
+        throw new apiError(400, "application is already rejected")
+    }
+    application.status = "Rejected"
+    await application.save()
+})
+
+export default { createJobPost, getFeedJobs, getJobDetails, jobApplicationToggle, deleteJobPost, getMyJobs, getJobApplicants, acceptApplication, rejectApplication }

@@ -50,6 +50,11 @@ const getJobApplicants = async (jobId) => {
     return applicants;
 }
 
+const findApplicationById = async (applicationId) => {
+    const application = await jobRepository.getApplication(applicationId)
+    return application;
+}
+
 export default {
     createJob,
     deleteJob,
@@ -60,5 +65,6 @@ export default {
     deleteApplication,
     deleteJobPost,
     findJobById,
-    getJobApplicants
+    getJobApplicants,
+    findApplicationById
 }
