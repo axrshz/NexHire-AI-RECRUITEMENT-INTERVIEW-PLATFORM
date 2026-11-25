@@ -100,8 +100,8 @@ export default function RecruiterJob() {
     }
   }
 
-  // Local state update for Accept & Reject (so candidates instantly move into respective fields)
-  const handleAccept = (candidateId) => {
+  // Accept & Reject with optimistic UI update and API persistence
+  const handleAccept = async (candidateId) => {
     setCandidates((prev) =>
       prev.map((c) =>
         (c._id === candidateId || c.candidateId === candidateId)
@@ -109,9 +109,16 @@ export default function RecruiterJob() {
           : c
       )
     )
+    try {
+      await asyncHandler(async () => {
+        await api.post(`/job/accept-application/${candidateId}`)
+      })
+    } catch (err) {
+      console.error('Failed to accept application:', err)
+    }
   }
 
-  const handleReject = (candidateId) => {
+  const handleReject = async (candidateId) => {
     setCandidates((prev) =>
       prev.map((c) =>
         (c._id === candidateId || c.candidateId === candidateId)
@@ -119,6 +126,13 @@ export default function RecruiterJob() {
           : c
       )
     )
+    try {
+      await asyncHandler(async () => {
+        await api.post(`/job/reject-application/${candidateId}`)
+      })
+    } catch (err) {
+      console.error('Failed to reject application:', err)
+    }
   }
 
   const handleResetToDue = (candidateId) => {
