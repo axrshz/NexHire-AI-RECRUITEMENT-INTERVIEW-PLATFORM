@@ -13,5 +13,7 @@ route.delete("/delete-job/:job_id", authMiddleware, jobControllers.deleteJobPost
 route.get("/recruiter-jobs", authMiddleware, jobControllers.getMyJobs)
 route.get("/job-applicants/:job_id", authMiddleware, jobControllers.getJobApplicants)
 route.get("/user-applications", authMiddleware, jobControllers.getMyApplications)
+route.post("/accept-application/:applicationId", authMiddleware, jobControllers.acceptApplication)
+route.post("/reject-application/:applicationId", authMiddleware, jobControllers.rejectApplication)
 
 export default route

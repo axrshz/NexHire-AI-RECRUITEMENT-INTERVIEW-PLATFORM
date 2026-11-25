@@ -230,8 +230,59 @@ const getMyApplications = asyncHandler(async function (req, res) {
         new apiResponse(200, "applications fetched successfully", applications)
     )
 })
-//accept application(send notification to candidate)(params: job_id, user_id)
+//accept application(send notification to candidate)(params: applicationId)
 
-//reject application(params: job_id, user_id)
+const acceptApplication = asyncHandler(async function (req, res) {
+    const { applicationId } = req.params
+    const user_id = req.user._id
+    const application = await jobService.findApplicationById(applicationId)
 
-export default { createJobPost, getFeedJobs, getJobDetails, jobApplicationToggle, deleteJobPost, getMyJobs, getJobApplicants, getMyApplications }
+    if (!application) {
+        throw new apiError(400, "application does not exist")
+    }
+    const foundJob = await jobService.findJobById(application.jobId)
+    if (!foundJob) {
+        throw new apiError(404, "job does not exist")
+    }
+    if (foundJob.postedBy.toString() !== user_id.toString()) {
+        throw new apiError(403, "you are not the owner of this job")
+    }
+    if (application.status === "Accepted") {
+        throw new apiError(400, "application is already accepted")
+    }
+    application.status = "Accepted"
+    await application.save()
+
+    return res.status(200).json(
+        new apiResponse(200, "application accepted successfully", application)
+    )
+})
+
+//reject application(params: applicationId)
+
+const rejectApplication = asyncHandler(async function (req, res) {
+    const { applicationId } = req.params
+    const user_id = req.user._id
+    const application = await jobService.findApplicationById(applicationId)
+    if (!application) {
+        throw new apiError(400, "application does not exist")
+    }
+    const foundJob = await jobService.findJobById(application.jobId)
+    if (!foundJob) {
+        throw new apiError(404, "job does not exist")
+    }
+    if (foundJob.postedBy.toString() !== user_id.toString()) {
+        throw new apiError(403, "you are not the owner of this job")
+    }
+    if (application.status === "Rejected") {
+        throw new apiError(400, "application is already rejected")
+    }
+    application.status = "Rejected"
+    await application.save()
+
+    return res.status(200).json(
+        new apiResponse(200, "application rejected successfully", application)
+    )
+})
+
+export default { createJobPost, getFeedJobs, getJobDetails, jobApplicationToggle, deleteJobPost, getMyJobs, getJobApplicants, getMyApplications, acceptApplication, rejectApplication }
