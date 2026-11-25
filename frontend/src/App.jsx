@@ -12,6 +12,7 @@ import CandidateApplications from './pages/Candidate.applications'
 import CandidateInterviews from './pages/Candidate.interviews'
 import CandidatePractice from './pages/Candidate.practice'
 import CandidateJob from './pages/Candidate.job'
+import RecruiterJob from './pages/Recruiter.job'
 
 function App() {
   // i am adarsh
@@ -25,6 +26,7 @@ function App() {
 
         {/* Recruiter Portal */}
         <Route path="/recruiter/home" element={<RecruiterHome />} />
+        <Route path="/recruiter/job/:id" element={<RecruiterJob />} />
 
         {/* Candidate Portal */}
         <Route path="/candidate" element={<Sidebar />}>

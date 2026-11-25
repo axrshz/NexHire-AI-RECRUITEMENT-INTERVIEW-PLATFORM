@@ -202,18 +202,32 @@ const getAllJobs = async (recruiterId) => {
 const getJobApplicants = async (jobId) => {
     const applicants = await applicationModel.aggregate([
         {
-            $match: { jobId: jobId }
+            $match: { jobId: new mongoose.Types.ObjectId(jobId) }
         },
         {
             $lookup: {
                 from: "users",
-                localField: "userId",
+                localField: "candidateId",
                 foreignField: "_id",
                 as: "userDetails"
             }
         },
         {
             $unwind: "$userDetails"
+        },
+        {
+            $project: {
+                _id: 1,
+                candidateId: 1,
+                jobId: 1,
+                companyId: 1,
+                resumeUrl: 1,
+                status: 1,
+                createdAt: 1,
+                name: "$userDetails.name",
+                email: "$userDetails.email",
+                avatar: "$userDetails.avatar"
+            }
         }
     ])
     return applicants;

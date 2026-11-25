@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api from '../api/axios.js'
+import api, { asyncHandler } from '../api/axios.js'
 import { ClearAccessToken } from '../api/memory.tokenStore.js'
 
 const DEFAULT_AVATAR = 'https://ui-avatars.com/api/?background=f43f5e&color=fff&bold=true&size=128'
@@ -61,55 +61,22 @@ const DUMMY_INTERVIEWS = [
   },
 ]
 
-// ─── Dummy Candidates for Jobs (pending backend candidate list API) ───────────
-const DUMMY_CANDIDATES_BY_JOB = [
-  {
-    id: 1,
-    name: 'Aarav Sharma',
-    email: 'aarav.sharma@example.com',
-    role: 'Full Stack Engineer',
-    aiScore: 94,
-    status: 'AI Interview Passed',
-    experience: '3 yrs exp',
-    location: 'Bengaluru, India',
-    appliedDate: 'Nov 21, 2026',
-  },
-  {
-    id: 2,
-    name: 'Riya Sengupta',
-    email: 'riya.sen@example.com',
-    role: 'Frontend Developer',
-    aiScore: 91,
-    status: 'Review Pending',
-    experience: '2 yrs exp',
-    location: 'Kolkata, India',
-    appliedDate: 'Nov 20, 2026',
-  },
-  {
-    id: 3,
-    name: 'Devansh Verma',
-    email: 'devansh.v@example.com',
-    role: 'Backend Engineer',
-    aiScore: 88,
-    status: 'Shortlisted',
-    experience: '4 yrs exp',
-    location: 'Remote',
-    appliedDate: 'Nov 17, 2026',
-  },
-]
-
 function getStatusBadge(status) {
   switch (status) {
     case 'AI Interview Passed':
     case 'Completed':
+    case 'Accepted':
       return 'bg-emerald-50 text-emerald-700 border-emerald-200'
     case 'Review Pending':
     case 'Pending Review':
+    case 'Due':
       return 'bg-amber-50 text-amber-700 border-amber-200'
     case 'Shortlisted':
       return 'bg-rose-50 text-rose-700 border-rose-200'
     case 'Interview Scheduled':
       return 'bg-blue-50 text-blue-700 border-blue-200'
+    case 'Rejected':
+      return 'bg-red-50 text-red-700 border-red-200'
     default:
       return 'bg-slate-50 text-slate-600 border-slate-200'
   }
@@ -135,22 +102,22 @@ export default function RecruiterHome() {
   const [myJobs, setMyJobs] = useState([])
   const [jobsLoading, setJobsLoading] = useState(true)
 
-  // Expand job card to view candidates
-  const [expandedJobId, setExpandedJobId] = useState(null)
-
   // Create Interview modal state
   const [createInterviewModal, setCreateInterviewModal] = useState(false)
   const [selectedJobForInterview, setSelectedJobForInterview] = useState(null)
 
-  // 1. Fetch current logged-in user
+  // 1. Fetch current logged-in user on mount with reload-safe asyncHandler
   useEffect(() => {
     let isMounted = true
     const fetchUser = async () => {
       try {
-        const res = await api.get('/user/get-curr-user')
-        if (isMounted && res?.data?.data?.user) {
-          setCurrUser(res.data.data.user)
-        }
+        await asyncHandler(async () => {
+          const res = await api.get('/user/get-curr-user')
+          if (isMounted && res?.data?.data?.user) {
+            setCurrUser(res.data.data.user)
+            localStorage.setItem('currentUser', JSON.stringify(res.data.data.user))
+          }
+        })
       } catch (err) {
         console.error('Failed to load current user:', err)
       }
@@ -159,20 +126,21 @@ export default function RecruiterHome() {
     return () => { isMounted = false }
   }, [])
 
-  // 2. Fetch jobs posted only by this recruiter
+  // 2. Fetch jobs posted only by this recruiter with reload-safe asyncHandler
   useEffect(() => {
     let isMounted = true
     const fetchMyJobs = async () => {
       setJobsLoading(true)
       try {
-        const res = await api.get('/job/recruiter-jobs')
-        if (isMounted) {
-          const list = res.data?.data || res.data?.jobs || []
-          setMyJobs(list)
-        }
+        await asyncHandler(async () => {
+          const res = await api.get('/job/recruiter-jobs')
+          if (isMounted) {
+            const list = res.data?.data || res.data?.jobs || []
+            setMyJobs(list)
+          }
+        })
       } catch (err) {
         console.error('Failed to load recruiter jobs:', err)
-        if (isMounted) setMyJobs([])
       } finally {
         if (isMounted) setJobsLoading(false)
       }
@@ -181,16 +149,19 @@ export default function RecruiterHome() {
     return () => { isMounted = false }
   }, [])
 
+  // 3. Logout handler wrapped in asyncHandler
   const handleLogout = async () => {
     try {
-      await api.get('/user/logout')
+      await asyncHandler(async () => {
+        await api.get('/user/logout')
+      })
     } catch {
       // Continue cleanup even if network fails
     }
     ClearAccessToken()
     localStorage.removeItem('accessToken')
     localStorage.removeItem('currentUser')
-    navigate('/login')
+    navigate('/')
   }
 
   // Stats: Kept ONLY Active Job Openings and AI Interviews Held
@@ -297,9 +268,13 @@ export default function RecruiterHome() {
                 {DUMMY_INTERVIEWS.length}
               </span>
             </div>
+          </div>
+        </div>
 
-            {/* Profile Tab Link */}
-           <button
+        {/* ── Sidebar Bottom: Create Interview Action + User Profile Avatar + Logout ───── */}
+        <div className="space-y-3 pt-4 border-t border-[#f7d6d6]">
+          {/* Create Interview Button (above profile) */}
+          <button
             onClick={() => {
               setSelectedJobForInterview(myJobs[0] || null)
               setCreateInterviewModal(true)
@@ -311,12 +286,6 @@ export default function RecruiterHome() {
             </svg>
             <span>Create Interview</span>
           </button>
-          </div>
-        </div>
-
-        {/* ── Sidebar Bottom: Quick Action + User Profile Avatar + Logout ───── */}
-        <div className="space-y-3 pt-4 border-t border-[#f7d6d6]">
-    
 
           {/* Profile Details with Avatar and Name in Sidebar */}
           <div
@@ -402,7 +371,7 @@ export default function RecruiterHome() {
             </p>
           </div>
 
-          {activeTab !== "interviews" && <button
+          <button
             onClick={() => {
               setSelectedJobForInterview(myJobs[0] || null)
               setCreateInterviewModal(true)
@@ -412,8 +381,8 @@ export default function RecruiterHome() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            <span>Create Job</span>
-          </button>}
+            <span>Create Interview</span>
+          </button>
         </div>
 
         {/* Stats Grid: ONLY Active Job Openings and AI Interviews Held */}
@@ -435,7 +404,7 @@ export default function RecruiterHome() {
         </div>
 
         {/* ═══════════════════════════════════════════════════════════════════ */}
-        {/* TAB 1: MY POSTED JOBS (Recruiter's Own Jobs + Candidate Roster)    */}
+        {/* TAB 1: MY POSTED JOBS (Recruiter's Own Jobs)                       */}
         {/* ═══════════════════════════════════════════════════════════════════ */}
         {activeTab === 'jobs' && (
           <div className="bg-white rounded-2xl border border-[#f7d6d6] shadow-xs overflow-hidden">
@@ -443,7 +412,7 @@ export default function RecruiterHome() {
               <div>
                 <h2 className="text-base font-bold text-slate-900">Jobs Posted By You</h2>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Click "View Candidates" on any job to inspect applicant profiles and AI scores
+                  Click "View" on any job to open the full job details and applicant candidate list
                 </p>
               </div>
               <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-100">
@@ -464,139 +433,62 @@ export default function RecruiterHome() {
                 </div>
                 <h3 className="text-sm font-bold text-slate-800">No jobs posted yet</h3>
                 <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-                  When you post job openings on NexHire, they will appear here along with incoming applicants.
+                  When you post job openings on NexHire, they will appear here.
                 </p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
-                {myJobs.map((job) => {
-                  const isExpanded = expandedJobId === job._id
-                  const candidatesList = job.applicants && job.applicants.length > 0
-                    ? job.applicants
-                    : DUMMY_CANDIDATES_BY_JOB
-
-                  return (
-                    <div key={job._id} className="transition">
-                      {/* Job Row Header */}
-                      <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-rose-50/20">
-                        <div className="flex items-start gap-4">
-                          <div className="w-11 h-11 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center font-extrabold text-rose-700 text-sm flex-shrink-0">
-                            {job.title?.slice(0, 2)?.toUpperCase() || 'JB'}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <h3 className="font-bold text-slate-900 text-sm">{job.title}</h3>
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${job.isActive === false ? 'bg-slate-50 text-slate-500 border-slate-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
-                                {job.isActive === false ? 'Closed' : 'Active'}
-                              </span>
-                            </div>
-                            <p className="text-xs text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
-                              <span>{job.jobType || 'Full-time'}</span>
-                              <span>&bull;</span>
-                              <span>{job.location || 'Remote'}</span>
-                              <span>&bull;</span>
-                              <span>{job.experience || 'Not specified'}</span>
-                              {job.salary && (
-                                <>
-                                  <span>&bull;</span>
-                                  <span className="font-semibold text-slate-700">{job.salary}</span>
-                                </>
-                              )}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Job Actions */}
-                        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
-                          <button
-                            onClick={() => {
-                              setSelectedJobForInterview(job)
-                              setCreateInterviewModal(true)
-                            }}
-                            className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                            </svg>
-                            Create Interview
-                          </button>
-
-                          <button
-                            onClick={() => setExpandedJobId(isExpanded ? null : job._id)}
-                            className="px-3 py-1.5 rounded-xl border border-[#f7d6d6] text-slate-700 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
-                          >
-                            <span>Candidates ({candidatesList.length})</span>
-                            <svg
-                              className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth="2.5"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
-                        </div>
+                {myJobs.map((job) => (
+                  <div
+                    key={job._id}
+                    className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-rose-50/20 transition"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="w-11 h-11 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center font-extrabold text-rose-700 text-sm flex-shrink-0">
+                        {job.title?.slice(0, 2)?.toUpperCase() || 'JB'}
                       </div>
-
-                      {/* Candidates Expansion Area */}
-                      {isExpanded && (
-                        <div className="bg-[#fff9f9] border-t border-[#f7d6d6] px-5 py-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                              Candidates Applied to {job.title}
-                            </h4>
-                            <span className="text-[11px] text-slate-500 font-medium">
-                              Sorted by AI Score
-                            </span>
-                          </div>
-
-                          <div className="divide-y divide-rose-100 rounded-xl border border-rose-100 bg-white overflow-hidden">
-                            {candidatesList.map((cand, cIdx) => (
-                              <div
-                                key={cand.id || cIdx}
-                                className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-rose-50/30 transition"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-slate-700 text-xs">
-                                    {cand.name?.slice(0, 2) || 'CD'}
-                                  </div>
-                                  <div>
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      <p className="text-xs font-bold text-slate-900">{cand.name}</p>
-                                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${getStatusBadge(cand.status)}`}>
-                                        {cand.status}
-                                      </span>
-                                    </div>
-                                    <p className="text-[11px] text-slate-500 mt-0.5">
-                                      {cand.role} &bull; {cand.experience || '2 yrs exp'} &bull; {cand.location || 'India'}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div className="flex items-center gap-4 justify-between sm:justify-end">
-                                  <div className="text-right">
-                                    <span className="text-[10px] text-slate-400 font-semibold uppercase block">AI Score</span>
-                                    <span className="text-xs font-extrabold text-rose-600">{cand.aiScore || 88}%</span>
-                                  </div>
-                                  <button
-                                    onClick={() => {
-                                      setSelectedJobForInterview(job)
-                                      setCreateInterviewModal(true)
-                                    }}
-                                    className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-medium transition cursor-pointer"
-                                  >
-                                    Interview
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3
+                            onClick={() => navigate(`/recruiter/job/${job._id}`)}
+                            className="font-bold text-slate-900 text-sm hover:text-rose-600 cursor-pointer transition"
+                          >
+                            {job.title}
+                          </h3>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${job.isActive === false ? 'bg-slate-50 text-slate-500 border-slate-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
+                            {job.isActive === false ? 'Closed' : 'Active'}
+                          </span>
                         </div>
-                      )}
+                        <p className="text-xs text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+                          <span>{job.jobType || job.type || 'Full-time'}</span>
+                          <span>&bull;</span>
+                          <span>{job.location || 'Remote'}</span>
+                          <span>&bull;</span>
+                          <span>{job.experience || 'Not specified'}</span>
+                          {job.salary && (
+                            <>
+                              <span>&bull;</span>
+                              <span className="font-semibold text-slate-700">{job.salary}</span>
+                            </>
+                          )}
+                        </p>
+                      </div>
                     </div>
-                  )
-                })}
+
+                    {/* Job Actions: Click View to Navigate to /recruiter/job/:id */}
+                    <div className="flex items-center gap-2.5 flex-shrink-0">
+                      <button
+                        onClick={() => navigate(`/recruiter/job/${job._id}`)}
+                        className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+                      >
+                        <span>View</span>
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
