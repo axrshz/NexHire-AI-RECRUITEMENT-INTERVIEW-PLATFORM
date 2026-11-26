@@ -86,13 +86,8 @@ export default function RecruiterHome() {
   const navigate = useNavigate()
 
   // Recruiter user data
-  const [currUser, setCurrUser] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('currentUser')) || {}
-    } catch {
-      return {}
-    }
-  })
+  const [currUser, setCurrUser] = useState()
+  const [companyExists, setCompanyExists] = useState(false)
 
   // Navigation: 'jobs' | 'interviews' | 'profile'
   const [activeTab, setActiveTab] = useState('jobs')
@@ -115,7 +110,6 @@ export default function RecruiterHome() {
           const res = await api.get('/user/get-curr-user')
           if (isMounted && res?.data?.data?.user) {
             setCurrUser(res.data.data.user)
-            localStorage.setItem('currentUser', JSON.stringify(res.data.data.user))
           }
         })
       } catch (err) {
@@ -149,6 +143,21 @@ export default function RecruiterHome() {
     return () => { isMounted = false }
   }, [])
 
+  useEffect(() => {
+    let isMounted = true
+    try {
+      asyncHandler(async function () {
+        api.get("/company/my-company")
+        if (res.data.data) {
+          setCompanyExists(true)
+        }
+      })
+    } catch {
+      setCompanyExists(false)
+    }
+    return () => { isMounted = false }
+  }, [])
+
   // 3. Logout handler wrapped in asyncHandler
   const handleLogout = async () => {
     try {
@@ -159,10 +168,10 @@ export default function RecruiterHome() {
       // Continue cleanup even if network fails
     }
     ClearAccessToken()
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('currentUser')
     navigate('/')
   }
+
+  const onCreateJob = asyncHandler()
 
   // Stats: Kept ONLY Active Job Openings and AI Interviews Held
   const stats = [
@@ -232,11 +241,10 @@ export default function RecruiterHome() {
             {/* My Posted Jobs */}
             <div
               onClick={() => { setActiveTab('jobs'); setMobileSidebarOpen(false) }}
-              className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
-                activeTab === 'jobs'
-                  ? 'bg-[#fdeaea] text-rose-700 font-bold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-[#fdeaea]/60'
-              }`}
+              className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${activeTab === 'jobs'
+                ? 'bg-[#fdeaea] text-rose-700 font-bold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-[#fdeaea]/60'
+                }`}
             >
               <div className="flex items-center gap-3">
                 <svg className={`w-4 h-4 ${activeTab === 'jobs' ? 'text-rose-600' : 'text-slate-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -252,11 +260,10 @@ export default function RecruiterHome() {
             {/* AI Interviews */}
             <div
               onClick={() => { setActiveTab('interviews'); setMobileSidebarOpen(false) }}
-              className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
-                activeTab === 'interviews'
-                  ? 'bg-[#fdeaea] text-rose-700 font-bold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-[#fdeaea]/60'
-              }`}
+              className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${activeTab === 'interviews'
+                ? 'bg-[#fdeaea] text-rose-700 font-bold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-[#fdeaea]/60'
+                }`}
             >
               <div className="flex items-center gap-3">
                 <svg className={`w-4 h-4 ${activeTab === 'interviews' ? 'text-rose-600' : 'text-slate-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -290,11 +297,10 @@ export default function RecruiterHome() {
           {/* Profile Details with Avatar and Name in Sidebar */}
           <div
             onClick={() => { setActiveTab('profile'); setMobileSidebarOpen(false) }}
-            className={`flex items-center justify-between p-2 rounded-xl transition border cursor-pointer ${
-              activeTab === 'profile'
-                ? 'bg-rose-50 border-rose-200'
-                : 'hover:bg-slate-100 border-transparent hover:border-slate-200'
-            }`}
+            className={`flex items-center justify-between p-2 rounded-xl transition border cursor-pointer ${activeTab === 'profile'
+              ? 'bg-rose-50 border-rose-200'
+              : 'hover:bg-slate-100 border-transparent hover:border-slate-200'
+              }`}
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <img
@@ -364,7 +370,7 @@ export default function RecruiterHome() {
               <span>Talent Intelligence Engine</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-              Welcome back, {currUser?.name?.split(' ')[0] || 'Recruiter'}
+              Welcome back, {currUser?.name?.split(' ')[0].charAt(0).toUpperCase() + "" + currUser?.name?.split(' ')[0].slice(1, currUser.length) || 'Recruiter'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
               Manage your job postings, candidate applications, and AI interview rounds.
@@ -373,7 +379,8 @@ export default function RecruiterHome() {
 
           <button
             onClick={() => {
-              setSelectedJobForInterview(myJobs[0] || null)
+              activeTab == "jobs" ? onCreateJob() :
+                setSelectedJobForInterview(myJobs[0] || null)
               setCreateInterviewModal(true)
             }}
             className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer self-start sm:self-auto"
@@ -381,7 +388,7 @@ export default function RecruiterHome() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            <span>Create Interview</span>
+            <span>{activeTab == 'jobs' ? "Create Job" : "Create Interview"}</span>
           </button>
         </div>
 
@@ -416,7 +423,7 @@ export default function RecruiterHome() {
                 </p>
               </div>
               <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-100">
-                {myJobs.length} {myJobs.length === 1 ? 'Job' : 'Jobs'} Live
+                {myJobs.filter((job) => job.isActive !== false).length} {myJobs.length === 1 ? 'Job' : 'Jobs'} Live
               </span>
             </div>
 

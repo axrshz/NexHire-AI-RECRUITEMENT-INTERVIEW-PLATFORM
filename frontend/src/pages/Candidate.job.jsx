@@ -52,24 +52,25 @@ function CandidateJob() {
         if (actionLoading || loading) return
         setApplied((prev) => !prev)
         setActionLoading(true)
-        asyncHandler(async () => {
-            try {
+        try {
+            asyncHandler(async () => {
                 const res = await api.post(`/job/apply/${id}`)
                 if (res?.data?.data?.isApplied !== undefined) {
                     setApplied(Boolean(res.data.data.isApplied))
                 }
-            } catch (err) {
-                setApplied((prev) => !prev)
-                const message = err.response?.data?.message || err.message || "Failed to update application status"
-                console.error("Application toggle failed:", message)
-                alert(message)
-            } finally {
-                setActionLoading(false)
-            }
-        })
+            })
+        } catch (err) {
+            setApplied((prev) => !prev)
+            const message = err.response?.data?.message || err.message || "Failed to update application status"
+            console.error("Application toggle failed:", message)
+            alert(message)
+        }
+        finally {
+            setActionLoading(false)
+        }
     }
 
-    
+
     const formatTimeAgo = (dateString) => {
         if (!dateString) return 'Recently'
         const diff = Date.now() - new Date(dateString).getTime()
@@ -216,11 +217,10 @@ function CandidateJob() {
                                         )}
 
                                         {job?.status && (
-                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
-                                                job.status === 'Open'
-                                                    ? 'bg-slate-50 border-slate-200 text-slate-700'
-                                                    : 'bg-slate-100 border-slate-200 text-slate-600'
-                                            }`}>
+                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${job.status === 'Open'
+                                                ? 'bg-slate-50 border-slate-200 text-slate-700'
+                                                : 'bg-slate-100 border-slate-200 text-slate-600'
+                                                }`}>
                                                 <span className={`w-1.5 h-1.5 rounded-full ${job.status === 'Open' ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
                                                 <span>{job.status}</span>
                                             </span>
@@ -273,11 +273,10 @@ function CandidateJob() {
                                     <button
                                         onClick={onApply}
                                         disabled={actionLoading}
-                                        className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer flex items-center gap-2 shadow-xs active:scale-95 ${
-                                            applied
-                                                ? 'border border-rose-300 bg-white text-rose-600 hover:bg-rose-50 hover:border-rose-400'
-                                                : 'bg-rose-600 hover:bg-rose-700 text-white'
-                                        }`}
+                                        className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer flex items-center gap-2 shadow-xs active:scale-95 ${applied
+                                            ? 'border border-rose-300 bg-white text-rose-600 hover:bg-rose-50 hover:border-rose-400'
+                                            : 'bg-rose-600 hover:bg-rose-700 text-white'
+                                            }`}
                                     >
                                         {actionLoading ? (
                                             <>
@@ -285,7 +284,7 @@ function CandidateJob() {
                                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                                                 </svg>
-                                                <span>{applied ? 'Unapplying...' : 'Applying...'}</span>
+                                                <span>loading..</span>
                                             </>
                                         ) : applied ? (
                                             <>
@@ -366,11 +365,10 @@ function CandidateJob() {
                                 <button
                                     onClick={onApply}
                                     disabled={actionLoading}
-                                    className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer shrink-0 flex items-center gap-2 shadow-xs active:scale-95 ${
-                                        applied
-                                            ? 'border border-rose-300 bg-white text-rose-600 hover:bg-rose-50 hover:border-rose-400'
-                                            : 'bg-rose-600 hover:bg-rose-700 text-white'
-                                    }`}
+                                    className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer shrink-0 flex items-center gap-2 shadow-xs active:scale-95 ${applied
+                                        ? 'border border-rose-300 bg-white text-rose-600 hover:bg-rose-50 hover:border-rose-400'
+                                        : 'bg-rose-600 hover:bg-rose-700 text-white'
+                                        }`}
                                 >
                                     {actionLoading ? (
                                         <>
@@ -378,7 +376,7 @@ function CandidateJob() {
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                                             </svg>
-                                            <span>{applied ? 'Unapplying...' : 'Applying...'}</span>
+                                            <span>loading..</span>
                                         </>
                                     ) : applied ? (
                                         <>

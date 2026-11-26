@@ -15,7 +15,6 @@ import CandidateJob from './pages/Candidate.job'
 import RecruiterJob from './pages/Recruiter.job'
 
 function App() {
-  // i am adarsh
   return (
     <Router>
       <Routes>
