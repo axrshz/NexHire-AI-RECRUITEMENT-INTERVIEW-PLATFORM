@@ -135,16 +135,6 @@ export default function RecruiterJob() {
     }
   }
 
-  const handleResetToDue = (candidateId) => {
-    setCandidates((prev) =>
-      prev.map((c) =>
-        (c._id === candidateId || c.candidateId === candidateId)
-          ? { ...c, status: 'Due' }
-          : c
-      )
-    )
-  }
-
   // Filter into the 3 distinct fields
   const dueCandidates = candidates.filter(
     (c) => !c.status || c.status === 'Due' || c.status === 'Pending' || c.status === 'Pending Review'
@@ -204,7 +194,7 @@ export default function RecruiterJob() {
           <span>View</span>
         </button>
 
-        {/* Buttons for DUE applicants */}
+        {/* Buttons for DUE applicants only */}
         {groupType === 'due' && (
           <>
             <button
@@ -227,86 +217,26 @@ export default function RecruiterJob() {
             </button>
           </>
         )}
-
-        {/* Buttons for ACCEPTED applicants */}
-        {groupType === 'accepted' && (
-          <>
-            <button
-              onClick={() => handleReject(cand._id || cand.candidateId)}
-              className="px-3 py-1.5 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
-              title="Move to rejected"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              <span>Reject</span>
-            </button>
-            <button
-              onClick={() => handleResetToDue(cand._id || cand.candidateId)}
-              className="px-2.5 py-1.5 rounded-xl text-slate-500 hover:bg-slate-100 text-xs font-medium transition cursor-pointer"
-              title="Reset to Due review"
-            >
-              Reset
-            </button>
-          </>
-        )}
-
-        {/* Buttons for REJECTED applicants */}
-        {groupType === 'rejected' && (
-          <>
-            <button
-              onClick={() => handleAccept(cand._id || cand.candidateId)}
-              className="px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
-              title="Reconsider and Accept"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              <span>Accept</span>
-            </button>
-            <button
-              onClick={() => handleResetToDue(cand._id || cand.candidateId)}
-              className="px-2.5 py-1.5 rounded-xl text-slate-500 hover:bg-slate-100 text-xs font-medium transition cursor-pointer"
-              title="Reset to Due review"
-            >
-              Reset
-            </button>
-          </>
-        )}
       </div>
     </div>
   )
 
   return (
     <div className="min-h-screen bg-[#fdeaea] font-sans pb-16">
-      {/* ── Top Header / Nav ───────────────────────────────────────────────── */}
-      <header className="bg-white border-b border-[#f7d6d6] sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate('/recruiter/home')}
-              className="p-2 rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition flex items-center gap-1.5 cursor-pointer text-xs font-bold"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              <span>Back to Dashboard</span>
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-rose-600 flex items-center justify-center text-white shadow-xs">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <span className="text-sm font-bold text-slate-900 hidden sm:inline">NexHire Recruiter</span>
-          </div>
-        </div>
-      </header>
-
       {/* ── Main Container ─────────────────────────────────────────────────── */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+        {/* Back Navigation */}
+        <div>
+          <button
+            onClick={() => navigate('/recruiter/home')}
+            className="px-3.5 py-2 rounded-xl bg-white border border-[#f7d6d6] text-slate-700 hover:bg-rose-50 hover:text-rose-600 transition inline-flex items-center gap-1.5 cursor-pointer text-xs font-bold shadow-2xs"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span>Back to Dashboard</span>
+          </button>
+        </div>
         {/* Error message */}
         {errorMsg && (
           <div className="p-4 rounded-xl bg-rose-100 border border-rose-300 text-rose-800 text-xs font-semibold">
