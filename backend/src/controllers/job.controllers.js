@@ -181,7 +181,8 @@ const deleteJobPost = asyncHandler(async function (req, res) {
     if (!foundJob) {
         throw new apiError(400, "job does'nt exist")
     }
-    if (foundJob.postedBy.toString() !== user_id.toString()) {
+    const postedById = foundJob.postedBy?._id ? foundJob.postedBy._id.toString() : foundJob.postedBy.toString()
+    if (postedById !== user_id.toString()) {
         throw new apiError(403, "you are not the owner of this job")
     }
     const deletedJob = await jobService.deleteJobPost(job_id)
@@ -244,7 +245,8 @@ const acceptApplication = asyncHandler(async function (req, res) {
     if (!foundJob) {
         throw new apiError(404, "job does not exist")
     }
-    if (foundJob.postedBy.toString() !== user_id.toString()) {
+    const postedById = foundJob.postedBy?._id ? foundJob.postedBy._id.toString() : foundJob.postedBy.toString()
+    if (postedById !== user_id.toString()) {
         throw new apiError(403, "you are not the owner of this job")
     }
     if (application.status === "Accepted") {
@@ -271,7 +273,8 @@ const rejectApplication = asyncHandler(async function (req, res) {
     if (!foundJob) {
         throw new apiError(404, "job does not exist")
     }
-    if (foundJob.postedBy.toString() !== user_id.toString()) {
+    const postedById = foundJob.postedBy?._id ? foundJob.postedBy._id.toString() : foundJob.postedBy.toString()
+    if (postedById !== user_id.toString()) {
         throw new apiError(403, "you are not the owner of this job")
     }
     if (application.status === "Rejected") {
