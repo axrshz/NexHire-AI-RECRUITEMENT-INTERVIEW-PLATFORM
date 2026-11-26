@@ -18,6 +18,8 @@ route.post("/verify-email", userControllers.verifyOtp)
 
 route.get("/logout", authMiddleware, userControllers.logout)
 
+route.patch("/update-account", authMiddleware, upload.single("avatar"), userControllers.updateAccount)
+
 route.delete("/delete", authMiddleware, userControllers.deleteAccount)
 
 export default route

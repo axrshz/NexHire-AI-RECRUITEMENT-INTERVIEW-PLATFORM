@@ -72,6 +72,8 @@ const deleteAllNotification = asyncHandler(async function (req, res) {
     );
 });
 
+//read all(params: userId from middleware)
+
 export default {
     getAllNotifications,
     readNotification,

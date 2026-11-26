@@ -226,6 +226,62 @@ const logout = asyncHandler(async function (req, res) {
     )
 })
 
+const updateAccount = asyncHandler(async function (req, res) {
+    const userId = req.user?._id;
+
+    if (!userId) {
+        throw new apiError(401, "unauthorized: user not logged in");
+    }
+
+    const { name, email } = req.body;
+
+    const user = await userModel.findById(userId);
+    if (!user) {
+        throw new apiError(404, "user does'nt exist");
+    }
+
+    const updateFields = {};
+
+    if (name && name.trim() !== "") {
+        updateFields.name = name.trim();
+    }
+
+    if (email && email.trim() !== "" && email !== user.email) {
+        if (!email.endsWith("@gmail.com")) {
+            throw new apiError(400, "invalid email format");
+        }
+        const emailExists = await userModel.findOne({ email });
+        if (emailExists) {
+            throw new apiError(400, "email already in use");
+        }
+        updateFields.email = email.trim();
+    }
+
+    if (req.file) {
+        const uploadResult = await uploadFile(req.file.path);
+        if (!uploadResult || (!uploadResult.secure_url && !uploadResult.url)) {
+            throw new apiError(500, "failed to upload avatar");
+        }
+        updateFields.avatar = uploadResult.secure_url || uploadResult.url;
+    } else if (req.body.avatar) {
+        updateFields.avatar = req.body.avatar;
+    }
+
+    if (Object.keys(updateFields).length === 0) {
+        throw new apiError(400, "no fields provided to update");
+    }
+
+    const updatedUser = await userModel.findByIdAndUpdate(
+        userId,
+        { $set: updateFields },
+        { new: true, runValidators: true }
+    ).select("-password -refreshToken");
+
+    return res.status(200).json(
+        new apiResponse(200, "account updated successfully", updatedUser)
+    );
+});
+
 const deleteAccount = asyncHandler(async function (req, res) {
     const userId = req.user._id
 
@@ -233,7 +289,7 @@ const deleteAccount = asyncHandler(async function (req, res) {
         throw new apiError(400, "user id is required")
     }
 
-    const user = await userModel.findByIdAndDelete(userID)
+    const user = await userModel.findByIdAndDelete(userId)
 
     if (!user) {
         throw new apiError(400, "account does'nt exist")
@@ -245,4 +301,4 @@ const deleteAccount = asyncHandler(async function (req, res) {
 
 })
 
-export default { Register, DefaultLogin, verifyOtp, getCurrUser, refreshToken, logout, deleteAccount }
+export default { Register, DefaultLogin, verifyOtp, getCurrUser, refreshToken, logout, updateAccount, deleteAccount }

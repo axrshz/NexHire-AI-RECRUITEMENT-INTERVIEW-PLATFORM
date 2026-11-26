@@ -296,7 +296,7 @@ export default function RecruiterHome() {
 
           {/* Profile Details with Avatar and Name in Sidebar */}
           <div
-            onClick={() => { setActiveTab('profile'); setMobileSidebarOpen(false) }}
+            onClick={() => { navigate("/recruiter/profile");  setMobileSidebarOpen(false) }}
             className={`flex items-center justify-between p-2 rounded-xl transition border cursor-pointer ${activeTab === 'profile'
               ? 'bg-rose-50 border-rose-200'
               : 'hover:bg-slate-100 border-transparent hover:border-slate-200'

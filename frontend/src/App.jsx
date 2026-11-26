@@ -13,6 +13,7 @@ import CandidateInterviews from './pages/Candidate.interviews'
 import CandidatePractice from './pages/Candidate.practice'
 import CandidateJob from './pages/Candidate.job'
 import RecruiterJob from './pages/Recruiter.job'
+import RecruiterProfile from './pages/Recruiter.profile'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
 
         {/* Recruiter Portal */}
         <Route path="/recruiter/home" element={<RecruiterHome />} />
+        <Route path="/recruiter/profile" element={<RecruiterProfile />} />
         <Route path="/recruiter/job/:id" element={<RecruiterJob />} />
 
         {/* Candidate Portal */}
